@@ -29,7 +29,7 @@ jobs:
           github_token: ${{ secrets.HUGO_DEPLOY_TOKEN }}
           PUBLISH_BRANCH: gh-pages  # 推送到 gh-pages 分支
           PUBLISH_DIR: ./public
-          commit_message: ${{ github.event.head_commit.message }
+          commit_message: ${{ github.event.head_commit.message }}
 
       - name: Deploy AliYun Cloud
         uses: wlixcc/SFTP-Deploy-Action@v1.2.1
