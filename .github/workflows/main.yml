@@ -1,0 +1,41 @@
+name: Main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: '0.104.0' # hugo 版本
+          extended: true
+
+      - name: Build
+        run: hugo --minify
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.HUGO_DEPLOY_TOKEN }}
+          PUBLISH_BRANCH: gh-pages  # 推送到 gh-pages 分支
+          PUBLISH_DIR: ./public
+          commit_message: ${{ github.event.head_commit.message }
+
+      - name: Deploy AliYun Cloud
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.1
+        with:
+           username: 'root'   #ssh user name
+           server: '${{ secrets.SERVER_IP }}'
+           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+           local_path: './public/*'
+           remote_path: '/var/www/blog'
