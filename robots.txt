@@ -1,2 +1,2 @@
 User-agent: *
-Sitemap: https://peanut-cc.github.io/sitemap.xml
+Sitemap: https://www.fan-tastic.fun/sitemap.xml
