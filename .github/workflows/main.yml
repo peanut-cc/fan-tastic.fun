@@ -21,7 +21,7 @@ jobs:
           extended: true
 
       - name: Build
-        run: hugo --theme=even --baseUrl="https://peanut-cc.github.io/"
+        run: hugo --gc --minify --cleanDestinationDir"
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
