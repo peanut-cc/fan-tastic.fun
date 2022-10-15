@@ -21,7 +21,7 @@ jobs:
           extended: true
 
       - name: Build
-        run: hugo --minify 
+        run: env HUGO_PARAMS_gitalk_clientId=${{ secrets.GITALK_CLIENTID }} HUGO_PARAMS_gitalk_gitalk=${{ secrets.GITALK_CLIENT_SECRET }} hugo --minify 
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
