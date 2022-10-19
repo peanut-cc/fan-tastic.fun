@@ -149,8 +149,8 @@ copyright = "by fan-tastic.fun" #            # default: author.name ↓        #
     repo = ""               # The repo to store comments
 
   [params.gitalk]           # Gitalk is a comment system based on GitHub issues. see https://github.com/gitalk/gitalk
-    owner = ""              # Your GitHub ID
-    repo = ""               # The repo to store comments
+    owner = "peanut-cc"              # Your GitHub ID
+    repo = "fan-tastic.fun"              # The repo to store comments
     clientId = ""           # Your client ID
     clientSecret = ""       # Your client secret
 
