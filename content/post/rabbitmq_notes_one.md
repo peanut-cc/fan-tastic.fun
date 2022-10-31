@@ -1,7 +1,7 @@
 ---
 title: "RabbitMQ笔记(一)----快速了解"
 date: 2022-10-12T14:22:46+08:00
-draft: false
+draft: true
 tags: ["RabbitMQ", "消息队列","中间件"]
 categories: ["RabbitMQ"]
 ---
