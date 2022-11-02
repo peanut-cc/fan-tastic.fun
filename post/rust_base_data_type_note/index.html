@@ -1,0 +1,260 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Rust笔记----常用基本数据类型 - Fan-tastic Fun</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="fan-tastic.fun"><meta name=description content="Rust 是静态类型的语言,即每个值都有确切的数据类型 数值类型 数值类型: 有符号整数 (i8, i16, i32, i64, isize)、 无符号整数 (u8, u16, u32, u64, usize) 、浮点数 (f32, f64)、以及"><meta name=keywords content="fun-tastic,Rust,dev,Rust"><meta name=generator content="Hugo 0.104.0 with theme even"><link rel=canonical href=https://www.fan-tastic.fun/post/rust_base_data_type_note/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Rust笔记----常用基本数据类型"><meta property="og:description" content="Rust 是静态类型的语言,即每个值都有确切的数据类型 数值类型 数值类型: 有符号整数 (i8, i16, i32, i64, isize)、 无符号整数 (u8, u16, u32, u64, usize) 、浮点数 (f32, f64)、以及"><meta property="og:type" content="article"><meta property="og:url" content="https://www.fan-tastic.fun/post/rust_base_data_type_note/"><meta property="article:section" content="post"><meta property="article:published_time" content="2022-11-01T13:59:09+08:00"><meta property="article:modified_time" content="2022-11-01T13:59:09+08:00"><meta itemprop=name content="Rust笔记----常用基本数据类型"><meta itemprop=description content="Rust 是静态类型的语言,即每个值都有确切的数据类型 数值类型 数值类型: 有符号整数 (i8, i16, i32, i64, isize)、 无符号整数 (u8, u16, u32, u64, usize) 、浮点数 (f32, f64)、以及"><meta itemprop=datePublished content="2022-11-01T13:59:09+08:00"><meta itemprop=dateModified content="2022-11-01T13:59:09+08:00"><meta itemprop=wordCount content="3679"><meta itemprop=keywords content="Rust,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Rust笔记----常用基本数据类型"><meta name=twitter:description content="Rust 是静态类型的语言,即每个值都有确切的数据类型 数值类型 数值类型: 有符号整数 (i8, i16, i32, i64, isize)、 无符号整数 (u8, u16, u32, u64, usize) 、浮点数 (f32, f64)、以及"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
+<script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>Fan-tastic</a></div><div class=mobile-navbar-icon><span></span>
+<span></span>
+<span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/><li class=mobile-menu-item>Home</li></a><a href=/post/><li class=mobile-menu-item>Archives</li></a><a href=/tags/><li class=mobile-menu-item>Tags</li></a><a href=/categories/><li class=mobile-menu-item>Categories</li></a><a href=/about/><li class=mobile-menu-item>About</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/ class=logo>Fan-tastic</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/>Home</a></li><li class=menu-item><a class=menu-item-link href=/post/>Archives</a></li><li class=menu-item><a class=menu-item-link href=/tags/>Tags</a></li><li class=menu-item><a class=menu-item-link href=/categories/>Categories</a></li><li class=menu-item><a class=menu-item-link href=/about/>About</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Rust笔记----常用基本数据类型</h1><div class=post-meta><span class=post-time>2022-11-01</span><div class=post-category><a href=/categories/rust/>Rust</a></div><span class=more-meta>3679 words</span>
+<span class=more-meta>8 mins read</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>Contents</h2><div class=post-toc-content><nav id=TableOfContents><ul><li><ul><li><a href=#数值类型>数值类型</a></li><li><a href=#布尔类型>布尔类型</a></li><li><a href=#char类型>char类型</a></li><li><a href=#字符串>字符串</a><ul><li><a href=#字符串字面量>字符串字面量</a></li><li><a href=#string>String</a></li><li><a href=#str-和-string-的关系>str 和 String 的关系</a></li><li><a href=#字符串字面量如何存储>字符串字面量如何存储</a></li></ul></li><li><a href=#元组类型>元组类型</a></li><li><a href=#数组类型>数组类型</a></li><li><a href=#向量>向量</a></li><li><a href=#指针类型>指针类型</a><ul><li><a href=#引用类型>引用类型</a></li><li><a href=#可变引用>可变引用</a></li><li><a href=#解引用>解引用</a></li></ul></li><li><a href=#切片类型>切片类型</a><ul><li><a href=#切片操作>切片操作</a></li><li><a href=#数据类型>数据类型</a></li><li><a href=#str切片类型>str切片类型</a></li><li><a href=#数组类型自动转换切片类型>数组类型自动转换切片类型</a></li></ul></li></ul></li></ul></nav></div></div><div class=post-content><p>Rust 是<code>静态类型</code>的语言,即每个值都有确切的数据类型</p><h2 id=数值类型>数值类型</h2><p>数值类型: 有符号整数 (i8, i16, i32, i64, isize)、 无符号整数 (u8, u16, u32, u64, usize) 、浮点数 (f32, f64)、以及有理数、复数</p><p>Rust 中数值类型 的使用和其他语言差别不大，可能定义上更加灵活，下面三种方式是等效的，Rust默认整数类型时<code>i32</code>,浮点类型默认时<code>f64</code></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=kd>let</span><span class=w> </span><span class=n>a</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>18</span><span class=k>i32</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>let</span><span class=w> </span><span class=n>b</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>18_</span><span class=k>i32</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>let</span><span class=w> </span><span class=n>c</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>18</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>Rust 允许使用 <code>0b, 0o, Ox</code> 来表示二进制，八进制，和十六进制的整数。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=kd>let</span><span class=w> </span><span class=n>d</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mb>0b101_</span><span class=k>i32</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>let</span><span class=w> </span><span class=n>f</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mo>0o17</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>let</span><span class=w> </span><span class=n>g</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mh>0xac</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>整数之间默认不会隐式转换，如果需要转换，可以手动使用<code>as</code> 进行转换。不过需要注意从宽类型数值转换为窄类型数值时，如果溢出会从高位截断。</p><p>需要注意Rust中将字节字面量存储为<code>u8</code>类型，字节字面量的表示形式为<code>b'A'</code>。如： <code>let aa = b'A';</code></p><h2 id=布尔类型>布尔类型</h2><p>Ture 和 False
+和其他语言不同，在类似 if, while 语句中进行逻辑运算符 <code>||</code> 或者 <code>&&</code> 进行条件判断时，Rust只允许在条件判断处使用布尔类型。</p><p>下面这种写法时错误的</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=kd>let</span><span class=w> </span><span class=n>a</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>10</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>if</span><span class=w> </span><span class=n>a</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;True&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w> </span><span class=k>else</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;False&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>这种写法时正确的：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=kd>let</span><span class=w> </span><span class=n>a</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>10</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>if</span><span class=w> </span><span class=n>a</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=mi>10</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=o>..</span><span class=p>.</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>Rust的布尔值可以使用as操作符转换为数值类型，false对应0，true对应1</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=kc>true</span><span class=w> </span><span class=k>as</span><span class=w> </span><span class=kt>i32</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=kc>true</span><span class=w> </span><span class=k>as</span><span class=w> </span><span class=kt>u8</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=kc>false</span><span class=w> </span><span class=k>as</span><span class=w> </span><span class=kt>u8</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=kc>false</span><span class=w> </span><span class=k>as</span><span class=w> </span><span class=kt>i32</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=char类型>char类型</h2><p>char类型时Rust的一种基本数据类型，用于存放单个<code>unicode</code>字符，占4字节(32bit)。char字面量是<strong>单引号</strong>引起来的任意单个字符</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=kd>let</span><span class=w> </span><span class=n>a</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=sc>&#39;A&#39;</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>数据转换:</p><ul><li>可以使用<code>as</code>将char 转换为各种整数类型，目标类型小于4字节时，将从高位截断。</li><li>可以用<code>as</code>将u8类型转换为char</li><li>可以使用 <code>std::char::from_u32</code>将 u32 转换为 char, 返回值：<code>Option&lt;char></code></li><li>可以使用<code>std::char::from_digit</code> 将 u32 根据第二个参数<code>BASE</code> 转换为对应进制的char, 返回值：<code>Option&lt;char></code></li></ul><h2 id=字符串>字符串</h2><p>字符串：字符串字面量和字符串切片 <code>&str</code></p><h3 id=字符串字面量>字符串字面量</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s>&#34;fan-tastic&#34;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>代码中的 <code>"fan-tastic"</code> 就是字符串字面量。在 <code>let name = "fan-tastic";</code> 进行赋值变量时进行类型推导，<code>name</code> 变量的数据类型是<code>&str</code>, <code>&</code> 表示该类型的引用，即一个指针。<code>&str</code> 表示一个指向内存中的<code>str</code>类型数据的指针，该指针指向的内存位置处存了字符串数据<code>fan-tastic</code>。</p><p>可以理解为：</p><ul><li>字符串字面量(string literal)的数据类型是<code>&str</code></li><li>字符串字面量(string literal)是字符串切片类型的引用类型</li></ul><h3 id=string>String</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=nb>String</span>::<span class=n>from</span><span class=p>(</span><span class=s>&#34;fan-tastic&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>Rust 中可以通过 <code>String::from("fan-tastic")</code>来创建 <code>String</code> 类型的字符串</p><h3 id=str-和-string-的关系>str 和 String 的关系</h3><p><code>str</code> 字符串是<code>String</code>类型字符串的切片类型。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=nb>String</span>::<span class=n>from</span><span class=p>(</span><span class=s>&#34;fan-tastic&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>s_str</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=n>name</span><span class=p>[</span><span class=o>..</span><span class=mi>3</span><span class=p>];</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>s_str</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p><code>name[..3]</code>的类型是 <code>str</code>, 即 <code>&name[..3]</code>类型是 <code>&str</code></p><h3 id=字符串字面量如何存储>字符串字面量如何存储</h3><p>上面代码中中的字符串字面量 <code>fan-tastic</code> 是怎么存储的？
+这里的处理比较特殊，编译器编译的时候直接将字符串字面量以硬编码的方式写入程序二进制文件中，存在<code>.RODATA</code>段(Linux)，只读。在Linux上可以通过<code>objdump</code>命令 或者 <code>readelf</code> 进行查看。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>objdump -s -j .rodata rust_example_code <span class=p>|</span> more
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>rust_example_code:     file format elf64-x86-64
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Contents of section .rodata:
+</span></span><span class=line><span class=cl> 3d000 66616e2d <span class=m>74617369</span> 74630a00 <span class=m>00000000</span>  fan-tasitc......
+</span></span><span class=line><span class=cl> 3d010 <span class=m>01000000</span> <span class=m>00000000</span> <span class=m>00000000</span> <span class=m>00000000</span>  ................
+</span></span><span class=line><span class=cl> 3d020 <span class=m>00040000</span> <span class=m>00000000</span> <span class=m>00000000</span> <span class=m>00000000</span>  ................
+</span></span><span class=line><span class=cl> 3d030 <span class=m>00000000</span> <span class=m>00000000</span> <span class=m>01000000</span> <span class=m>00000000</span>  ................
+</span></span><span class=line><span class=cl> 3d040 <span class=m>01000000</span> <span class=m>00000000</span> <span class=m>01000000</span> <span class=m>00000000</span>  ................
+</span></span><span class=line><span class=cl> 3d050 <span class=m>00000000</span> <span class=m>00000000</span> <span class=m>00000000</span> <span class=m>00000000</span>  ................
+</span></span><span class=line><span class=cl> 3d060 <span class=m>01000000</span> <span class=m>00000000</span> <span class=m>13000000</span> <span class=m>00000000</span>  ................
+</span></span><span class=line><span class=cl> 3d070 <span class=m>01000000</span> <span class=m>00000000</span> <span class=m>02000000</span> <span class=m>00000000</span>  ................
+</span></span><span class=line><span class=cl> 3d080 <span class=m>80000000</span> <span class=m>00000000</span> <span class=m>00000000</span> <span class=m>00000000</span>  ................
+</span></span><span class=line><span class=cl> 3d090 <span class=m>14000000</span> <span class=m>00000000</span> <span class=m>00000000</span> <span class=m>00000000</span>  ................
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>readelf -x .rodata rust_example_code <span class=p>|</span> more
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Hex dump of section <span class=s1>&#39;.rodata&#39;</span>:
+</span></span><span class=line><span class=cl>  0x0003d000 66616e2d <span class=m>74617369</span> 74630a00 <span class=m>00000000</span> fan-tasitc......
+</span></span><span class=line><span class=cl>  0x0003d010 <span class=m>01000000</span> <span class=m>00000000</span> <span class=m>00000000</span> <span class=m>00000000</span> ................
+</span></span><span class=line><span class=cl>  0x0003d020 <span class=m>00040000</span> <span class=m>00000000</span> <span class=m>00000000</span> <span class=m>00000000</span> ................
+</span></span><span class=line><span class=cl>  0x0003d030 <span class=m>00000000</span> <span class=m>00000000</span> <span class=m>01000000</span> <span class=m>00000000</span> ................
+</span></span><span class=line><span class=cl>  0x0003d040 <span class=m>01000000</span> <span class=m>00000000</span> <span class=m>01000000</span> <span class=m>00000000</span> ................
+</span></span><span class=line><span class=cl>  0x0003d050 <span class=m>00000000</span> <span class=m>00000000</span> <span class=m>00000000</span> <span class=m>00000000</span> ................
+</span></span><span class=line><span class=cl>  0x0003d060 <span class=m>01000000</span> <span class=m>00000000</span> <span class=m>13000000</span> <span class=m>00000000</span> ................
+</span></span><span class=line><span class=cl>  0x0003d070 <span class=m>01000000</span> <span class=m>00000000</span> <span class=m>02000000</span> <span class=m>00000000</span> ................
+</span></span><span class=line><span class=cl>  0x0003d080 <span class=m>80000000</span> <span class=m>00000000</span> <span class=m>00000000</span> <span class=m>00000000</span> ................
+</span></span><span class=line><span class=cl>  0x0003d090 <span class=m>14000000</span> <span class=m>00000000</span> <span class=m>00000000</span> <span class=m>00000000</span> ................
+</span></span></code></pre></td></tr></table></div></div><p>当程序运行时，可执行文件中的代码和数据从磁盘复制到内存中，通过下面这个图就可以知道代码中字面量 <code>fan-tastic</code> 的位置：</p><p><img src=/images/rust_base_data_type/linux%E5%86%85%E5%AD%98%E6%98%A0%E5%83%8F.png alt=Linux内存映像></p><p>所以当执行到 <code>let name = "fan-tastic";</code> 将 <code>fan-tasitc</code> 赋值给变量name(name是存在栈上)时，是将 <code>fan-tastic</code> 字面量的的内存地址保存到name中。
+<code>let name = String::from("fan-tastic");</code>,当执行到这里的时候，会将在 <code>.RODATA</code>中存储的字符串字面量拷贝到<code>堆</code>上。并将该数据在堆内存中的地址赋值给变量 name。</p><h2 id=元组类型>元组类型</h2><p>Rust 中的 tuple 可以存放 0个，1个或多个任意类型的数据。访问时通过索引进行访问：tuple.N
+当不存任何数据的tuple表示为<code>()</code>,这种情况比较特殊，这个时候叫做：unit(单元类型)。
+当只存一个元素的时候，写法也比较特殊<code>let a =("fan-tastic",);</code> 这个元素后面的逗号不能省略。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>tup</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=p>(</span><span class=s>&#34;fan-tasitc&#34;</span><span class=p>,</span><span class=w> </span><span class=mi>18</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=p>(</span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>age</span><span class=p>)</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tup</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}-{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=n>age</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}-{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>tup</span><span class=p>.</span><span class=mi>0</span><span class=p>,</span><span class=n>tup</span><span class=p>.</span><span class=mi>1</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>总结：</p><ul><li>元组中的元素可以时不同数据类型</li><li>访问的索引必须编译时确定不能是变量</li><li>只存在一个元素时，元素后面的逗号不能省略</li><li>当不存在元素时，是unit(单元类型)</li></ul><h2 id=数组类型>数组类型</h2><p>Rust 中的数组<strong>长度固定，元素类型相同。</strong></p><p>数组的表示形式<code>[Type;N]</code>:</p><ul><li>Type表示数组要存储的数据类型</li><li>N时数组的长度,必须编译期确定，不能是一个变量</li><li>数组的大小也是类型自身的一部分</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>_arr</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=p>[</span><span class=mi>1</span><span class=p>,</span><span class=mi>2</span><span class=p>,</span><span class=mi>3</span><span class=p>,</span><span class=mi>4</span><span class=p>];</span><span class=w> </span><span class=c1>// 自定推导类型为[i32;4]
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>_arr2</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=p>[</span><span class=s>&#34;rust&#34;</span><span class=p>,</span><span class=s>&#34;fan-tastic&#34;</span><span class=p>];</span><span class=w> </span><span class=c1>// 自动推到类型为[&amp;str;2]
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>_arr3</span>:<span class=p>[</span><span class=o>&amp;</span><span class=kt>str</span><span class=p>;</span><span class=mi>3</span><span class=p>]</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=p>[</span><span class=s>&#34;fan-tasitc&#34;</span><span class=p>,</span><span class=w> </span><span class=s>&#34;peanut&#34;</span><span class=p>,</span><span class=w> </span><span class=s>&#34;hhh&#34;</span><span class=p>];</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p><code>let res = [10;5];</code> 创建一个包含了5个元素都是10的数组。</p><p>我们看到的用于数组的方法，比如迭代元素、搜索、排序、填充、筛选等，都是切片的方法，并非数组的方法。不过，Rust 会在查找方法时隐式地把对数组的引用转换为对切片的引用，因此可以直接在数组上调用切片的任何方法。</p><h2 id=向量>向量</h2><p><code>Vec&lt;T></code> 叫作 T 类型的向量，是一种动态分配，可扩展的类型T 的 值的序列。
+向量的元素保存在堆上，所以向量是可以追加，删除元素的。</p><p>创建向量的方式多种多样：</p><ul><li><code>let v = vec![1,2,3,4];</code></li><li><code>let v = vec!["fan-tastic";10];</code></li><li><code>let v = Vec::new();</code></li><li><code>let v: Vec&lt;i32> = (0..5).collect();</code> 这种情况通常需要写明类型</li></ul><p>与数组类似，向量也可以使用切片的相关的方法。</p><p>一个<code>Vec&lt;T></code> 包含3个值：</p><ul><li>对分配在堆上用于保存元素缓冲区的引用</li><li>缓冲区可以存储的元素的个数，即容量</li><li>当前实际存储的元素的个数，即长度</li></ul><p>当缓冲区达到容量上限后，再给向量添加元素会导致：</p><ol><li>重新分配一个更大的缓冲区</li><li>将现有的内容复制过去</li><li>基于新的缓冲区更新向量的指针和容量</li><li>释放旧的缓冲区。</li></ol><p>注意： 如果提前知道向量中需要保存的元素的个数，可以使用<code>Vec::with_capacity</code>先创建一个有足够大缓冲区的向量。</p><h2 id=指针类型>指针类型</h2><p>常见的指针类型：<code>引用</code>，<code>Box</code> 和 <code>不安全指针</code>，这里先整理关于 <code>引用</code> 类型的指针</p><h3 id=引用类型>引用类型</h3><p>引用类型是一种数据类型，它表示其所保存值的一个引用。Rust 中使用 <code>&T</code> 表示类型T的引用类型。</p><p>表达式 <code>&x</code> 会产生一个对 x 的引用，用 Rust 的话说，就是它 借用了一个对 x 的引用。
+而拿到一个引用 r，表达式 <code>*r</code> 引用的则是 r 指向的值。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>n</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>18</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>n_ref1</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=n>n</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>n_ref2</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=n>n</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// std::ptr::eq 判断两个引用是否指向同一个地址。
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>std</span>::<span class=n>ptr</span>::<span class=n>eq</span><span class=p>(</span><span class=n>n_ref1</span><span class=p>,</span><span class=n>n_ref2</span><span class=p>));</span><span class=w> </span><span class=c1>// true
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=可变引用>可变引用</h3><p>默认我们直接使用<code>&T</code> 创建的是不可变引用，即只读。
+<code>&mut T</code> 可以创建可变引用。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>n</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>10</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>let</span><span class=w> </span><span class=n>n_ref</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=k>mut</span><span class=w> </span><span class=n>n</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>注意：如果本身变量不是可变的的，那就无法创建可变引用。</p><h3 id=解引用>解引用</h3><p>解引用，通过引用获取该引用只想的原始值。<code>*T</code> 表示解引用。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>n</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>18</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>n_ref</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=k>mut</span><span class=w> </span><span class=n>n</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>n</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>*</span><span class=n>n_ref</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>assert_eq!</span><span class=p>(</span><span class=n>n</span><span class=p>,</span><span class=w> </span><span class=mi>19</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>Rust 在很多情况下会替我们自动解引用：</p><ul><li>使用<code>.</code>操作符时，如获取属性，方法调用等，会隐式地尽可能解除或创建多层引用。</li><li>使用比较操作符时，如果比较的两边时相同类型的引用，则会自动解除引用，再进行比较。</li></ul><h2 id=切片类型>切片类型</h2><p>切片(slice),写作不指定长度的 <code>[T]</code>，表示数组或向量的一个范围。也正是因为切片可以是任意长度，因此不能直接保存到变量中，也不能作为函数参数传递，切片永远只能按引用传递。</p><h3 id=切片操作>切片操作</h3><ul><li><code>s[n1..n2]</code>: 获取 s 中 <code>n1&lt;=index&lt;n2</code> 之间的元素</li><li><code>s[n1..]</code>: 获取 s 中 index=n1 到 最后的元素</li><li><code>s[..n1]</code>: 获取 s 中 从 开头到 n1(但不包含n1) 之间的元素</li><li><code>s[..=n1]</code>: 获取 s 中 从 开头到 n1(包含n1) 之间的元素</li></ul><p>注意： 切片操作允许使用 <code>usize</code> 类型的变量作为切片的边界。</p><h3 id=数据类型>数据类型</h3><p>切片类型是一个胖指针即包含两分元数据：</p><ul><li>指向源数据中切片起点元素的指针</li><li>元素的数量，即切片的长度</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>arr</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=p>[</span><span class=mi>1</span><span class=p>,</span><span class=mi>2</span><span class=p>,</span><span class=mi>3</span><span class=p>,</span><span class=mi>4</span><span class=p>,</span><span class=mi>5</span><span class=p>];</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>n</span>:<span class=kt>usize</span> <span class=o>=</span><span class=w> </span><span class=mi>3</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// let arr_s = arr[..n]; // 报错
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>arr_s</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=n>arr</span><span class=p>[</span><span class=o>..</span><span class=n>n</span><span class=p>];</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{:?}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>arr_s</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>Rust中几乎总是使用切片数据的引用。切片数据的引用对应的数据类型描述为<code>&[T]</code>或<code>&mut [T]</code>，前者不可通过切片引用来修改源数据，后者可修改源数据。</p><p>注意和数组的描述区分：
+数组类型表示为<code>[T; N]</code>，数组的引用类型表示为<code>&[T; N]</code>， 切片类型表示为<code>[T]</code>，切片的引用类型表示为<code>&[T]</code>。</p><h3 id=str切片类型>str切片类型</h3><p>String的切片类型是<code>str</code>，而非<code>[String]</code>，String切片的引用是&str而非<code>&[String]</code>。</p><p>Rust为了保证字符串总是有效的Unicode字符，它不允许用户直接修改字符串中的字符，所以也无法通过切片引用来修改源字符串。</p><h3 id=数组类型自动转换切片类型>数组类型自动转换切片类型</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>names</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=p>[</span><span class=s>&#34;peanut&#34;</span><span class=p>,</span><span class=s>&#34;fan-tasitc&#34;</span><span class=p>];</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>slice</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=n>names</span><span class=p>;</span><span class=w> </span><span class=c1>//&amp;arr 将自动转换为切片类型
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>slice</span><span class=p>.</span><span class=n>first</span><span class=p>().</span><span class=n>unwrap</span><span class=p>())</span><span class=c1>// 这里调用的是切片类型的first()方法
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>可以直接将数组的引用当成切片来使用。即<code>&arr</code>和<code>&mut arr</code>当作不可变切片和可变切片来使用。
+在调用方法的时候，由于<code>.</code>操作符会自动创建引用或解除引用，因此数组可以直接调用切片的所有方法。
+如下代码：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>print</span><span class=p>(</span><span class=n>n</span>: <span class=kp>&amp;</span><span class=p>[</span><span class=kt>i32</span><span class=p>])</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>for</span><span class=w> </span><span class=n>el</span><span class=w> </span><span class=k>in</span><span class=w> </span><span class=n>n</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>el</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=kd>let</span><span class=w> </span><span class=n>arr1</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=p>[</span><span class=mi>10</span><span class=p>,</span><span class=mi>8</span><span class=p>,</span><span class=mi>19</span><span class=p>,</span><span class=mi>20</span><span class=p>];</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=kd>let</span><span class=w> </span><span class=n>arr2</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=fm>vec!</span><span class=p>[</span><span class=mi>90</span><span class=p>,</span><span class=mi>100</span><span class=p>,</span><span class=mi>2</span><span class=p>,</span><span class=mi>3</span><span class=p>];</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>print</span><span class=p>(</span><span class=o>&amp;</span><span class=n>arr1</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>print</span><span class=p>(</span><span class=o>&amp;</span><span class=n>arr2</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+<span class=item-content>fan-tastic.fun</span></p><p class=copyright-item><span class=item-title>LastMod</span>
+<span class=item-content>2022-11-01</span></p><p class=copyright-item><span class=item-title>License</span>
+<span class=item-content><a rel="license noopener" href=https://creativecommons.org/licenses/by/4.0/ target=_blank>知识共享署名4.0</a></span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/rust/>Rust</a></div><nav class=post-nav><a class=next href=/post/about_study_methods/><span class="next-text nav-default">《费曼学习法：用输出倒逼输入》读书笔记</span>
+<span class="next-text nav-mobile">Next</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div><div id=gitalk-container></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css crossorigin=anonymous><script src=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js crossorigin=anonymous></script>
+<script type=text/javascript>var gitalk=new Gitalk({id:"2022-11-01 13:59:09 \u002b0800 \u002b0800",title:"Rust笔记----常用基本数据类型",clientID:"8e56c7d6ce34f788ca8f",clientSecret:"d8012ab38028c2fffa457e0449f958da07dc84e5",repo:"fan-tastic.fun",owner:"peanut-cc",admin:["peanut-cc"],body:decodeURI(location.href)});gitalk.render("gitalk-container")</script><noscript>Please enable JavaScript to view the <a href=https://github.com/gitalk/gitalk>comments powered by gitalk.</a></noscript></div></main><footer id=footer class=footer><div class=social-links><a href=https://github.com/peanut-cc class="iconfont icon-github" title=github></a>
+<a href=https://www.fan-tastic.fun/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>Powered by <a class=hexo-link href=https://gohugo.io>Hugo</a></span>
+<span class=division>|</span>
+<span class=theme-info>Theme -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2022<span class=heart><i class="iconfont icon-heart"></i></span><span>by fan-tastic.fun</span>
+<span><a class=theme-link href=https://beian.miit.gov.cn/>豫ICP备2022023372号-1</a></span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script>
+<script type=text/javascript src=/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js></script></body></html>
