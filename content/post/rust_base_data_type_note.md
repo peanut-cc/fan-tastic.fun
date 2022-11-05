@@ -3,6 +3,7 @@ title: "Rust笔记----常用基本数据类型"
 date: 2022-11-01T13:59:09+08:00
 tags: ["Rust"]
 categories: ["Rust"]
+keywords: ["rust","基本数据类型"]
 draft: false
 ---
 
