@@ -1,7 +1,7 @@
 baseURL = "https://www.fan-tastic.fun/"
 languageCode = "zh"
 defaultContentLanguage = "en"                             # en / zh-cn / ... (This field determines which i18n file to use)
-title = "Fan-tastic Fun"
+title = "fan-tastic.fun"
 preserveTaxonomyNames = true
 enableRobotsTXT = true
 enableEmoji = true
@@ -64,8 +64,8 @@ copyright = "by fan-tastic.fun" #            # default: author.name ↓        #
   gitRepo = "git@github.com:peanut-cc/fan-tastic.fun.git"
 
   # site info (optional)                                  # 站点信息（可选，不需要的可以直接注释掉）
-  logoTitle = "Fan-tastic"        # default: the title value    # 默认值: 上面设置的title值
-  keywords = ["fun-tastic", "Rust","dev", "Rust"]
+  logoTitle = "fan-tastic"        # default: the title value    # 默认值: 上面设置的title值
+  keywords = ["fan-tastic", "Rust","dev", "Rust", "fan-tasitc.fun", "fun"]
   description = "fantastic life,write code!"
 
   # paginate of archives, tags and categories             # 归档、标签、分类每页显示的文章数目，建议修改为一个较大的值
