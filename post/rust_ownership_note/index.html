@@ -1,0 +1,449 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Rust所有权 - fan-tastic.fun</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="fan-tastic.fun"><meta name=description content="Rust所有权系统是保证Rust内存安装的最关键手段之一。 Rust 变量作用域 Rust 中大括号就表示一个单独的作用域。所以常见的大括号作用域有： if，wh"><meta name=keywords content="rust,ownership,rust所有权,作用域,Move,可变引用与不可变引用"><meta name=generator content="Hugo 0.104.0 with theme even"><link rel=canonical href=https://www.fan-tastic.fun/post/rust_ownership_note/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Rust所有权"><meta property="og:description" content="Rust所有权系统是保证Rust内存安装的最关键手段之一。 Rust 变量作用域 Rust 中大括号就表示一个单独的作用域。所以常见的大括号作用域有： if，wh"><meta property="og:type" content="article"><meta property="og:url" content="https://www.fan-tastic.fun/post/rust_ownership_note/"><meta property="article:section" content="post"><meta property="article:published_time" content="2022-11-03T16:47:03+08:00"><meta property="article:modified_time" content="2022-11-05T17:24:16+08:00"><meta itemprop=name content="Rust所有权"><meta itemprop=description content="Rust所有权系统是保证Rust内存安装的最关键手段之一。 Rust 变量作用域 Rust 中大括号就表示一个单独的作用域。所以常见的大括号作用域有： if，wh"><meta itemprop=datePublished content="2022-11-03T16:47:03+08:00"><meta itemprop=dateModified content="2022-11-05T17:24:16+08:00"><meta itemprop=wordCount content="3772"><meta itemprop=keywords content="Rust,ownership,所有权,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Rust所有权"><meta name=twitter:description content="Rust所有权系统是保证Rust内存安装的最关键手段之一。 Rust 变量作用域 Rust 中大括号就表示一个单独的作用域。所以常见的大括号作用域有： if，wh"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
+<script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>fan-tastic</a></div><div class=mobile-navbar-icon><span></span>
+<span></span>
+<span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/><li class=mobile-menu-item>Home</li></a><a href=/post/><li class=mobile-menu-item>Archives</li></a><a href=/tags/><li class=mobile-menu-item>Tags</li></a><a href=/categories/><li class=mobile-menu-item>Categories</li></a><a href=/about/><li class=mobile-menu-item>About</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/ class=logo>fan-tastic</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/>Home</a></li><li class=menu-item><a class=menu-item-link href=/post/>Archives</a></li><li class=menu-item><a class=menu-item-link href=/tags/>Tags</a></li><li class=menu-item><a class=menu-item-link href=/categories/>Categories</a></li><li class=menu-item><a class=menu-item-link href=/about/>About</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Rust所有权</h1><div class=post-meta><span class=post-time>2022-11-03</span><div class=post-category><a href=/categories/rust/>Rust</a></div><span class=more-meta>3772 words</span>
+<span class=more-meta>8 mins read</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>Contents</h2><div class=post-toc-content><nav id=TableOfContents><ul><li><ul><li><a href=#rust-变量作用域>Rust 变量作用域</a><ul><li><a href=#函数作用域>函数作用域</a></li><li><a href=#悬垂引用>悬垂引用</a></li></ul></li><li><a href=#再次理解引用>再次理解引用</a></li><li><a href=#所有权规则>所有权规则</a><ul><li><a href=#所有者>所有者</a></li></ul></li><li><a href=#movecopyclone>move/copy/clone</a><ul><li><a href=#move>move</a></li><li><a href=#copy>copy</a></li><li><a href=#clone>clone</a></li><li><a href=#函数参数和返回值>函数参数和返回值</a></li></ul></li><li><a href=#引用和所有权借用>引用和所有权借用</a><ul><li><a href=#可变引用和不可变引用的所有权规则>可变引用和不可变引用的所有权规则</a></li><li><a href=#容器集合类型所有权规则>容器集合类型所有权规则</a></li></ul></li></ul></li></ul></nav></div></div><div class=post-content><p>Rust所有权系统是保证Rust内存安装的最关键手段之一。</p><h2 id=rust-变量作用域>Rust 变量作用域</h2><p>Rust 中大括号就表示一个单独的作用域。所以常见的大括号作用域有：</p><ul><li>if，while 等流程控制语句的大括号</li><li>match 模式匹配的大括号</li><li>单独的大括号</li><li>函数定义的大括号</li><li>mod 定义模块的大括号</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s>&#34;fan-tastic&#34;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;name is {} address is {:p}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s>&#34;peanut&#34;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;name is {} address is {:p}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;name is {} address is {:p}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>运行结果为：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>name is fan-tastic address is 0x55bd3842b05b
+</span></span><span class=line><span class=cl>name is peanut address is 0x55bd3842b07a
+</span></span><span class=line><span class=cl>name is fan-tastic address is 0x55bd3842b05b
+</span></span></code></pre></td></tr></table></div></div><p>在看另外两种种情况：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=sd>/// 情况一
+</span></span></span><span class=line><span class=cl><span class=sd></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s>&#34;peanut&#34;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;name is {} address is {:p}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s>&#34;fan-tastic&#34;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;name is {} address is {:p}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>// 打印的结果为：
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=n>name</span><span class=w> </span><span class=n>is</span><span class=w> </span><span class=n>peanut</span><span class=w> </span><span class=n>address</span><span class=w> </span><span class=n>is</span><span class=w> </span><span class=mh>0x55a184fa805b</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>name</span><span class=w> </span><span class=n>is</span><span class=w> </span><span class=n>fan</span><span class=o>-</span><span class=n>tastic</span><span class=w> </span><span class=n>address</span><span class=w> </span><span class=n>is</span><span class=w> </span><span class=mh>0x55a184fa8076</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=sd>/// 情况二
+</span></span></span><span class=line><span class=cl><span class=sd></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s>&#34;peanut&#34;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;name is {} address is {:p}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s>&#34;peanut&#34;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;name is {} address is {:p}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>// 打印的结果：
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=n>name</span><span class=w> </span><span class=n>is</span><span class=w> </span><span class=n>peanut</span><span class=w> </span><span class=n>address</span><span class=w> </span><span class=n>is</span><span class=w> </span><span class=mh>0x55f81906405b</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>name</span><span class=w> </span><span class=n>is</span><span class=w> </span><span class=n>peanut</span><span class=w> </span><span class=n>address</span><span class=w> </span><span class=n>is</span><span class=w> </span><span class=mh>0x55f81906405b</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>字符串字面量是放在二进制文件中的<code>.RODATA</code>段中，所以即使是不同作用域，如果他们的字面量是相同的的，这个时候编译器会优化，让在不同作用域中的变量使用的都是同一个字面量的引用。
+字面量是编译时写入到二进制文件中的，会在程序启动到程序终止期间一直存在。</p><h3 id=函数作用域>函数作用域</h3><p>函数作用域内，无法访问函数外部的变量，而其他大括号的作用域，可以访问大括号外部的变量。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>a</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>18</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>a</span><span class=w> </span><span class=o>+=</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>a</span><span class=p>);</span><span class=w> </span><span class=c1>// 19
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>再看一个例子：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>a</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>10</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>a</span><span class=o>+=</span><span class=mi>1</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>a</span><span class=p>);</span><span class=w> </span><span class=c1>// 11
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>a</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>3</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>a</span><span class=w> </span><span class=o>+=</span><span class=w> </span><span class=mi>10</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>a</span><span class=p>);</span><span class=c1>// 13
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>a</span><span class=p>);</span><span class=w> </span><span class=c1>// 11
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><ul><li><code>a+=1;</code>访问并修改了 外部变量 a</li><li><code>let mut a = 3;</code> 在当前大括号内重新声明了变量a,这就是变量的遮盖(shadow)</li></ul><h3 id=悬垂引用>悬垂引用</h3><p>在Rust中，编译器保证不会出现悬垂引用，即引用必须总是有效。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>foo</span><span class=p>()</span><span class=w> </span>-&gt; <span class=kp>&amp;</span><span class=nb>String</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>s</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=nb>String</span>::<span class=n>from</span><span class=p>(</span><span class=s>&#34;fan-tastic&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=o>&amp;</span><span class=n>s</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>foo</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>这段代码不能编译通过。函数foo 返回的是 s 的引用，而s 是在函数内声明的，当离开函数后，s 就会被销毁，这使得返回值<code>&s</code>变成了一个无效的引用。</p><h2 id=再次理解引用>再次理解引用</h2><p>首先理解一下当声明一个变量的时候，数据在堆栈中的存储情况</p><p>如<code>let a = 3;</code></p><p><img src=/images/rust_base_data_type/%E5%8F%98%E9%87%8F%E4%BD%8D%E7%BD%AE%E5%92%8C%E5%80%BC.png alt=变量位置和值></p><p>a 称为变量名，可以理解为就是编程语言上提供了一个别名，就是对栈上位置的一个代号，可以理解为房间号和房间的关系
+变量 a 对应栈中的一个位置，这个位置保存了值
+栈上的位置是有自己的内存地址的，假设就是上图中的 <code>0x123</code>
+这里可以简单粗暴的理解为 a 就是 栈上的那个位置，即地址<code>0x123</code>
+每个位置(变量)都是它所存放的值的所有者</p><p>如 <code>let aa = vec![1,2,3];</code></p><p><img src=/images/rust_base_data_type/%E5%8F%98%E9%87%8F%E4%BD%8D%E7%BD%AE%E5%92%8C%E5%80%BC2.png alt=变量位置和值2></p><p>这里有两个位置，一个是栈中的位置，一个是堆中的位置
+在栈中的位置存的是胖指针，这个是在声明变量的时候显示创建的位置，这个位置存放的是Vec类型，而堆中的位置是隐士产生的，这个位置和变量没有关系，而是栈中位置上的胖指针中有一个指针指向这个堆中的位置。
+变量 aa 的值是栈上的胖指针，而不是实际的数据
+变量 aa 是栈上的胖指针的所有者，而不是实际数据的的所有者</p><p>再看</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=kd>let</span><span class=w> </span><span class=n>n</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>18</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>let</span><span class=w> </span><span class=n>nn</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=n>n</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p><img src=/images/rust_base_data_type/%E5%8F%98%E9%87%8F%E4%BD%8D%E7%BD%AE%E5%92%8C%E5%80%BC3.png alt=变量位置和值3></p><p>变量 n 对应栈中的一个位置，这个位置保存了18,这个位置的地址是 0x777
+变量 nn 也是栈中中的一个位置，这个位置保存了一个地址值，这个地址值为 0x777 即指向变量n的位置</p><p>同理如下代码的：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=kd>let</span><span class=w> </span><span class=n>v</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=fm>vec!</span><span class=p>[</span><span class=mi>1</span><span class=p>,</span><span class=mi>2</span><span class=p>,</span><span class=mi>3</span><span class=p>];</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>let</span><span class=w> </span><span class=n>vv</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=n>v</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>变量 vv 在栈上位置中存的是 变量 v 在栈上位置地址，Rust的宗旨之一就是保证安全，不允许存在对堆中同一个内存的多个指向
+只有最初创建这块堆内存的vv变量才指向堆中这块数据。</p><p>变量一旦被初始化，无论它之后保存的数据发生什么变化，它的地址都是固定不变的。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s>&#34;fan-tasitc&#34;</span><span class=p>.</span><span class=n>to_string</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{:p}&#34;</span><span class=p>,</span><span class=w> </span><span class=o>&amp;</span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>name2</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>name</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{:p}&#34;</span><span class=p>,</span><span class=w> </span><span class=o>&amp;</span><span class=n>name2</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s>&#34;peanut&#34;</span><span class=p>.</span><span class=n>to_string</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{:p}&#34;</span><span class=p>,</span><span class=w> </span><span class=o>&amp;</span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>运行结果：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>0x7fff590900d0
+</span></span><span class=line><span class=cl>0x7fff59090130
+</span></span><span class=line><span class=cl>0x7fff590900d0
+</span></span></code></pre></td></tr></table></div></div><p>从结果也可以看出，不管怎么改变的变量name的值，name 在栈上的位置是始终不变的</p><h2 id=所有权规则>所有权规则</h2><p>所有权规则：</p><ul><li>每一个值都被一个变量所拥有，该变量被称为值的所有者</li><li>一个值同时只能被一个变量所拥有，或者说一个值只能拥有一个所有者。(值在任一时刻有且只有一个所有者)</li><li>当所有者(变量)离开作用域范围时，这个值将被丢弃(drop)</li></ul><p>关于第三条需要注意：如果类似字符串字面量这种保存在全局内存区域，那么数据其实并没有销毁，只是删除了栈上的引用。</p><h3 id=所有者>所有者</h3><p>如何理解Rust 中每个值都有一个所有者？
+<code>let s = String::from("fan-tastic");</code> String字符串的实际数据在堆中，但是String大小不确定，所以在栈中使用一个胖指针结构来表示这个String 类型的数据，这个胖指针中的指针指向堆中的String 实际数据。即变量s 的值是那个胖指针，而不是堆中的实际数据。如下图：</p><p><img src=/images/rust_owership/string%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png alt=string内存结构></p><p>所以准确的说的 变量 s 是那个胖指针的所有者，而不是堆中实际数据的所有者。</p><h2 id=movecopyclone>move/copy/clone</h2><h3 id=move>move</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>s</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=nb>String</span>::<span class=n>from</span><span class=p>(</span><span class=s>&#34;fan-tasitc&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>s2</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>s</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{},{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>s</span><span class=p>,</span><span class=n>s2</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>会看到如下错误：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=o>-</span>-&gt; <span class=nc>src</span><span class=o>/</span><span class=n>main</span><span class=p>.</span><span class=n>rs</span>:<span class=mi>6</span>:<span class=mi>23</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=o>|</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=mi>4</span><span class=w> </span><span class=o>|</span><span class=w>     </span><span class=kd>let</span><span class=w> </span><span class=n>s</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=nb>String</span>::<span class=n>from</span><span class=p>(</span><span class=s>&#34;fan-tasitc&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=o>|</span><span class=w>         </span><span class=o>-</span><span class=w> </span><span class=k>move</span><span class=w> </span><span class=n>occurs</span><span class=w> </span><span class=n>because</span><span class=w> </span><span class=err>`</span><span class=n>s</span><span class=err>`</span><span class=w> </span><span class=n>has</span><span class=w> </span><span class=k>type</span> <span class=err>`</span><span class=nb>String</span><span class=err>`</span><span class=p>,</span><span class=w> </span><span class=n>which</span><span class=w> </span><span class=n>does</span><span class=w> </span><span class=n>not</span><span class=w> </span><span class=n>implement</span><span class=w> </span><span class=n>the</span><span class=w> </span><span class=err>`</span><span class=nb>Copy</span><span class=err>`</span><span class=w> </span><span class=k>trait</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=mi>5</span><span class=w> </span><span class=o>|</span><span class=w>     </span><span class=kd>let</span><span class=w> </span><span class=n>s2</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>s</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=o>|</span><span class=w>              </span><span class=o>-</span><span class=w> </span><span class=n>value</span><span class=w> </span><span class=n>moved</span><span class=w> </span><span class=n>here</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=mi>6</span><span class=w> </span><span class=o>|</span><span class=w>     </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{},{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>s</span><span class=p>,</span><span class=n>s2</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=o>|</span><span class=w>                       </span><span class=o>^</span><span class=w> </span><span class=n>value</span><span class=w> </span><span class=n>borrowed</span><span class=w> </span><span class=n>here</span><span class=w> </span><span class=n>after</span><span class=w> </span><span class=k>move</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=o>|</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>s 是 String 字符串，变量 s 是指向 栈上的胖指针，在执行 <code>let s2 = s;</code> 的时候，将会拷贝 s 在栈上的胖指针，然后让s 无效，所有权转移之后，将只有新的所有者才会指向堆中的实际数据。</p><p>再看如下代码：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>x</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s>&#34;fan-tasitc&#34;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>y</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>x</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{} {}&#34;</span><span class=p>,</span><span class=n>x</span><span class=p>,</span><span class=n>y</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>这里因为字符串字面量 &ldquo;fan-tasitc&rdquo; 是在 二进制文件的 <code>.RODATA</code>段中 中，所以 x 只是引用了存储在二进制文件的 <code>.RODATA</code>段的字符串，并未持有所有权。所以<code>let y = x;</code> 知识对该引用进行了拷贝，此时 y 和 x 都引用了同一个字符串。</p><h3 id=copy>copy</h3><p>Rust copy语义 和 move的区别是在Copy后，原始变量仍然可以用。Rust 默认是使用Move语义，如果需要使用Copy语义，需要被拷贝的数据类型实现了Copy Trait。</p><p>Rust 中常见的默认实现了Copy Trait 的类型：</p><ul><li>所有整数类型</li><li>所有浮点数类型</li><li>布尔类型</li><li>字符类型</li><li>元组 只有其包含的类型都是Copy 的时候</li><li>共享指针类型或共享引用类型</li><li>&mldr;.</li></ul><h3 id=clone>clone</h3><p>clone 可以拷贝变量的数据，同时不会影响变量。不过只有实现了 Clone Trait的类型才可以进行Clone。</p><p>Copy 和 Clone 区别：</p><ul><li>Copy 时，只拷贝变量本身的值，如果这个变量指向了其他数据，则不会拷贝其他指向的数据</li><li>Clone 时，拷贝变量本身的值，如果这个变量指向了其他数据，则也会拷贝其指向的数据</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>v</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=fm>vec!</span><span class=p>[</span><span class=s>&#34;fan-tasitc&#34;</span><span class=p>.</span><span class=n>to_string</span><span class=p>()];</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>v2</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=fm>vec!</span><span class=p>[</span><span class=n>v</span><span class=p>];</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{:p}&#34;</span><span class=p>,</span><span class=o>&amp;</span><span class=n>v2</span><span class=p>[</span><span class=mi>0</span><span class=p>][</span><span class=mi>0</span><span class=p>]);</span><span class=w> </span><span class=c1>//0x556a5c5e0ba0
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>v3</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>v2</span><span class=p>.</span><span class=n>clone</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{:p}&#34;</span><span class=p>,</span><span class=w> </span><span class=o>&amp;</span><span class=n>v3</span><span class=p>[</span><span class=mi>0</span><span class=p>][</span><span class=mi>0</span><span class=p>]);</span><span class=w> </span><span class=c1>//0x556a5c5e0c20
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=函数参数和返回值>函数参数和返回值</h3><p>函数的参数类似于变量赋值，在调用函数时，会将所有权移动给函数参数。
+函数返回时，返回值的所有权从函数内部移动到函数外部变量。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>f1</span><span class=p>(</span><span class=n>s</span>: <span class=nb>String</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nb>String</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>a</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=nb>String</span>::<span class=n>from</span><span class=p>(</span><span class=s>&#34;peanut&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;args is {} and a is {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>s</span><span class=p>,</span><span class=w> </span><span class=n>a</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>a</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>f2</span><span class=p>(</span><span class=n>i</span>: <span class=kt>i32</span><span class=p>){</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>i</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>s</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=nb>String</span>::<span class=n>from</span><span class=p>(</span><span class=s>&#34;fan-tasitc&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>s2</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>f1</span><span class=p>(</span><span class=n>s</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>s2</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// println!(&#34;{}&#34;, s); // error: value borrowed here after move
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>n</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>10</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>f2</span><span class=p>(</span><span class=n>n</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><ul><li><code>let s2 = f1(s);</code> 所有权从s 移动到了f1的参数，f1 函数返回值的所有权移动给了s2。</li><li><code>f2(n);</code> 没有所有权的移动，只是拷贝了一份给f2 的参数。</li></ul><p>自己在代码中应该根据需要确定是否需要将所有权转移给函数参数。如果不想失去所有权，可以将变量的引用传递给函数参数。</p><h2 id=引用和所有权借用>引用和所有权借用</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>s</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=nb>String</span>::<span class=n>from</span><span class=p>(</span><span class=s>&#34;fan-tasitc&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>s1</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=n>s</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>s2</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=n>s</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{} {:p} {:p}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>s</span><span class=p>,</span><span class=w> </span><span class=n>s1</span><span class=p>,</span><span class=w> </span><span class=n>s2</span><span class=p>);</span><span class=w> </span><span class=c1>// fan-tasitc 0x7ffd9cc1a6b0 0x7ffd9cc1a6b0
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=可变引用和不可变引用的所有权规则>可变引用和不可变引用的所有权规则</h3><p><code>&mut T</code> 表示可变引用， <code>&T</code> 表示不可变引用。站在所有权借用的角度来看，可变引用表示的是可变借用，不可变引用表示的是不可变借用。</p><ul><li>不可变借用：借用只读权，不允许修改其引用的数据</li><li>可变引用：借用可写权，允许修改其引用的数据</li><li>可以同时存在多个不可变引用</li><li>在有可变引用时，不允许存在其他可变引用和不可变应用</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>x</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=nb>String</span>::<span class=n>from</span><span class=p>(</span><span class=s>&#34;fan-tasitc&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>x_ref</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=k>mut</span><span class=w> </span><span class=n>x</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// let x_ref_read = &amp;x; // 如果放在这里将会编译失败
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>x_ref</span><span class=p>.</span><span class=n>push_str</span><span class=p>(</span><span class=s>&#34;.fun&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>x</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>x_ref_read</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=n>x</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=n>x_ref_read</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>s</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=nb>String</span>::<span class=n>from</span><span class=p>(</span><span class=s>&#34;hello&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>f1</span><span class=p>(</span><span class=o>&amp;</span><span class=k>mut</span><span class=w> </span><span class=n>s</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>s</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>f1</span><span class=p>(</span><span class=n>s</span>: <span class=kp>&amp;</span><span class=nc>mut</span><span class=w> </span><span class=nb>String</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>s</span><span class=p>.</span><span class=n>push_str</span><span class=p>(</span><span class=s>&#34; world&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>思考为什么仅仅因为顺序的不同编译失败？</p><p>个人理解 “在有可变引用时，不允许存在其他可变引用和不可变应用” 的意思是：</p><ul><li>不可变引用是可以和可变引用同时创建。</li><li>如果存在可变引用，这个时候就会具有排他性，但这个拍他性在于你是否同时使用。</li><li>如果存在可变引用，原始变量的使用和可变引用的使用也会存在排他性。</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>a</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=nb>String</span>::<span class=n>from</span><span class=p>(</span><span class=s>&#34;fan-tasitc&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>a_ref1</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=n>a</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>a_ref2</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=n>a</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 上面只存在不可变引用，这个不存在冲突，是可以创建多个的
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// 下面开始创建了可变引用，在这个时候，上面创建的两个引用都将无法使用
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>a_ref3</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=k>mut</span><span class=w> </span><span class=n>a</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 再次创建不可变引用，上面的都将不可以使用
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>a_ref4</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=n>a</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>a_ref5</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=k>mut</span><span class=w> </span><span class=n>a</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>a_ref5</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>a</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=n>a_ref5</span><span class=p>);</span><span class=w> </span><span class=c1>//报错
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>再看一段代码：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>x</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>10</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>y</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=k>mut</span><span class=w> </span><span class=n>x</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>x</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>*</span><span class=n>y</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>x</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>y</span><span class=p>);</span><span class=w> </span><span class=c1>// 报错
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>运行错误如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=w> </span><span class=o>-</span>-&gt; <span class=nc>src</span><span class=o>/</span><span class=n>main</span><span class=p>.</span><span class=n>rs</span>:<span class=mi>6</span>:<span class=mi>5</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=o>|</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=mi>5</span><span class=w> </span><span class=o>|</span><span class=w>     </span><span class=kd>let</span><span class=w> </span><span class=n>y</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=k>mut</span><span class=w> </span><span class=n>x</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=o>|</span><span class=w>             </span><span class=o>------</span><span class=w> </span><span class=n>borrow</span><span class=w> </span><span class=n>of</span><span class=w> </span><span class=err>`</span><span class=n>x</span><span class=err>`</span><span class=w> </span><span class=n>occurs</span><span class=w> </span><span class=n>here</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=mi>6</span><span class=w> </span><span class=o>|</span><span class=w>     </span><span class=n>x</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>*</span><span class=n>y</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=o>|</span><span class=w>     </span><span class=o>^^^^^^^^^^</span><span class=w> </span><span class=n>assignment</span><span class=w> </span><span class=n>to</span><span class=w> </span><span class=n>borrowed</span><span class=w> </span><span class=err>`</span><span class=n>x</span><span class=err>`</span><span class=w> </span><span class=n>occurs</span><span class=w> </span><span class=n>here</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=mi>7</span><span class=w> </span><span class=o>|</span><span class=w>     </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>x</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=mi>8</span><span class=w> </span><span class=o>|</span><span class=w>     </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>y</span><span class=p>);</span><span class=w> </span><span class=c1>// 报错
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>  </span><span class=o>|</span><span class=w>                    </span><span class=o>-</span><span class=w> </span><span class=n>borrow</span><span class=w> </span><span class=n>later</span><span class=w> </span><span class=n>used</span><span class=w> </span><span class=n>here</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>在<code>x = *y + 1;</code> 这里已经借用了y,而在借用获得所有权之后，将无法在使用，即y将失效。</p><p>总结：如果是创建的不可变引用，如果再次创建可变引用，</p><h3 id=容器集合类型所有权规则>容器集合类型所有权规则</h3><p>容器中可能包含栈中的数据，也可能包含堆中的数据。</p><p><code>let tup = (10, String::from("fan-tasitc));</code></p><p>容器变量拥有容器中所有元素值的的所有权。但是需要注意：
+容器中的元素如果发生了所有权的转移，容器将不在拥有其所有权，容器本身也不能使用，但是容器中的其他元素依然可以使用</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>tup</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=p>(</span><span class=mi>1</span><span class=p>,</span><span class=w> </span><span class=nb>String</span>::<span class=n>from</span><span class=p>(</span><span class=s>&#34;fan-tastic&#34;</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=p>(</span><span class=n>x</span><span class=p>,</span><span class=w> </span><span class=n>y</span><span class=w> </span><span class=p>)</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tup</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}, {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>x</span><span class=p>,</span><span class=w> </span><span class=n>y</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>tup</span><span class=p>.</span><span class=mi>0</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>tup</span><span class=p>.</span><span class=mi>1</span><span class=p>);</span><span class=w> </span><span class=c1>// 错误
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=fm>print!</span><span class=p>(</span><span class=s>&#34;{:?}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>tup</span><span class=p>);</span><span class=w> </span><span class=c1>// 错误
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p><code>let (x, y ) = tup;</code> 这里 tup 的第二个元素发生了所有权转移。所以后续无法再使用<code>tup.1</code> 和 <code>tup</code></p><p>如果想让原容器中的变量依然可以使用，可以有三种方法：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=c1>// 方式一：忽略
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>let</span><span class=w> </span><span class=p>(</span><span class=n>x</span><span class=p>,</span><span class=w> </span><span class=n>_</span><span class=p>)</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tup</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>tup</span><span class=p>.</span><span class=mi>1</span><span class=p>);</span><span class=w>  </span><span class=c1>//  正确
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>// 方式二：clone
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>let</span><span class=w> </span><span class=p>(</span><span class=n>x</span><span class=p>,</span><span class=w> </span><span class=n>y</span><span class=p>)</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tup</span><span class=p>.</span><span class=n>clone</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>tup</span><span class=p>.</span><span class=mi>1</span><span class=p>);</span><span class=w>  </span><span class=c1>//  正确
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>// 方式三：引用
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>let</span><span class=w> </span><span class=p>(</span><span class=n>x</span><span class=p>,</span><span class=w> </span><span class=k>ref</span><span class=w> </span><span class=n>y</span><span class=p>)</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tup</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>tup</span><span class=p>.</span><span class=mi>1</span><span class=p>);</span><span class=w>  </span><span class=c1>//  正确
+</span></span></span></code></pre></td></tr></table></div></div><p>总结： 一旦对变量进行了可变引用，这个位置将只能存在单一使用者，使用者可以是原始变量，也可以是心的可变引用或者不可变引用，使用者可以随时切换，但保证任意时刻只能有一个使用者。</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+<span class=item-content>fan-tastic.fun</span></p><p class=copyright-item><span class=item-title>LastMod</span>
+<span class=item-content>2022-11-05
+<a href=#ZgotmplZ/commit/1c011976175ab01924e0813d65e5d75725d62f26 title="fix: tags error">(1c01197)</a></span></p><p class=copyright-item><span class=item-title>License</span>
+<span class=item-content><a rel="license noopener" href=https://creativecommons.org/licenses/by/4.0/ target=_blank>知识共享署名4.0</a></span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/rust/>Rust</a>
+<a href=/tags/ownership/>ownership</a>
+<a href=/tags/%E6%89%80%E6%9C%89%E6%9D%83/>所有权</a></div><nav class=post-nav><a class=next href=/post/rust_base_data_type_note/><span class="next-text nav-default">Rust笔记----常用基本数据类型</span>
+<span class="next-text nav-mobile">Next</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div><div id=gitalk-container></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css crossorigin=anonymous><script src=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js crossorigin=anonymous></script>
+<script type=text/javascript>var gitalk=new Gitalk({id:"2022-11-03 16:47:03 \u002b0800 \u002b0800",title:"Rust所有权",clientID:"8e56c7d6ce34f788ca8f",clientSecret:"d8012ab38028c2fffa457e0449f958da07dc84e5",repo:"fan-tastic.fun",owner:"peanut-cc",admin:["peanut-cc"],body:decodeURI(location.href)});gitalk.render("gitalk-container")</script><noscript>Please enable JavaScript to view the <a href=https://github.com/gitalk/gitalk>comments powered by gitalk.</a></noscript></div></main><footer id=footer class=footer><div class=social-links><a href=https://github.com/peanut-cc class="iconfont icon-github" title=github></a>
+<a href=https://www.fan-tastic.fun/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>Powered by <a class=hexo-link href=https://gohugo.io>Hugo</a></span>
+<span class=division>|</span>
+<span class=theme-info>Theme -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2022<span class=heart><i class="iconfont icon-heart"></i></span><span>by fan-tastic.fun</span>
+<span><a class=theme-link href=https://beian.miit.gov.cn/>豫ICP备2022023372号-1</a></span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script>
+<script type=text/javascript src=/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js></script></body></html>
