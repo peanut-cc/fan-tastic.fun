@@ -1,7 +1,7 @@
 ---
 title: "Rust所有权"
 date: 2022-11-03T16:47:03+08:00
-tags: ["Rust"， "ownership", "所有权"]
+tags: ["Rust", "ownership", "所有权"]
 categories: ["Rust"]
 keywords: ["rust","ownership", "rust所有权", "作用域", "Move", "可变引用与不可变引用"]
 draft: false
