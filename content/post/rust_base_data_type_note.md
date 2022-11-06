@@ -1,9 +1,9 @@
 ---
-title: "Rust笔记----常用基本数据类型"
+title: "Rust笔记----常用数据类型"
 date: 2022-11-01T13:59:09+08:00
 tags: ["Rust"]
 categories: ["Rust"]
-keywords: ["rust","基本数据类型"]
+keywords: ["rust","基本数据类型", "rust常用数据类型"]
 draft: false
 ---
 
@@ -219,7 +219,7 @@ fn main() {
 
 我们看到的用于数组的方法，比如迭代元素、搜索、排序、填充、筛选等，都是切片的方法，并非数组的方法。不过，Rust 会在查找方法时隐式地把对数组的引用转换为对切片的引用，因此可以直接在数组上调用切片的任何方法。
 
-## 向量
+## 向量 Vec
 
 `Vec<T>` 叫作 T 类型的向量，是一种动态分配，可扩展的类型T 的 值的序列。
 向量的元素保存在堆上，所以向量是可以追加，删除元素的。
@@ -230,8 +230,13 @@ fn main() {
 - `let v = vec!["fan-tastic";10];`
 - `let v = Vec::new();`
 - `let v: Vec<i32> = (0..5).collect();` 这种情况通常需要写明类型
+- `let v =Vec::with_capacity()` 创建空的vec, 容量可以根据需要自己设定
 
 与数组类似，向量也可以使用切片的相关的方法。
+
+### Vec的内存布局
+
+![Vec内存布局](/images/rust_base_data_type/Vec内存布局.png)
 
 一个`Vec<T>` 包含3个值：
 
@@ -247,6 +252,18 @@ fn main() {
 4. 释放旧的缓冲区。
 
 注意： 如果提前知道向量中需要保存的元素的个数，可以使用`Vec::with_capacity`先创建一个有足够大缓冲区的向量。
+
+```dotnetcli
+fn main() {
+    let mut v = Vec::with_capacity(2);
+    v.push(1);
+    v.push(2);
+    v.push(3);
+    println!("{}",v.capacity()) // 4
+}
+```
+
+可以通过代码简单验证，如果没有空闲容量，则会重新申请一块内存，大小为原来vec内存大小的两倍。
 
 ## 指针类型
 
