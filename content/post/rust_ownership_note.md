@@ -458,4 +458,104 @@ let (x, ref y) = tup;
 println!("{}", tup.1);  //  正确
 ```
 
-总结： 一旦对变量进行了可变引用，这个位置将只能存在单一使用者，使用者可以是原始变量，也可以是心的可变引用或者不可变引用，使用者可以随时切换，但保证任意时刻只能有一个使用者。
+总结： 一旦对变量进行了可变引用，这个位置将只能存在单一使用者，使用者可以是原始变量，也可以是新的可变引用或者不可变引用，使用者可以随时切换，但保证任意时刻只能有一个使用者。
+
+## 再次理解Move
+
+```rust
+fn main() {
+    let name = &"fan-tasitc".to_string();
+    let name2 = *name;
+}
+```
+
+这代码编译错误：
+
+```rust
+cannot move out of `*name` which is behind a shared reference
+```
+
+当产生一个位置，并且需要向位置中放入值，就会发生移动。这个值可能来自某个变量，可能来自计算结果，值的类型可能实现了 `Copy Trait` 。需要注意的是解引用操作也是需要转移所有权。
+
+这里 name 是一个引用，并不是 String 类型的所有者，当使用 `*name` 解引用时，需要转移所有权，但是发现 name 只是引用，并不是所有者，导致无法转移值的所有权，出现了错误。
+
+下面代码时正确的使用方式：
+
+```rust
+fn main() {
+    let name = &"fan-tasitc".to_string();
+    let name2 = &*name;
+    let name3 = (*name).clone();
+    let num = &3;
+    let num2 = *num;
+}
+```
+
+个人总结：
+`let name2 = *name;` 的时候`*name`需要获取所有权，但是name并没有String 的所有权，加上，String 类型并没有实现Copy 所以这里报错。
+`let num2 = *num;` 这里虽然`*num`也会获取所有权，但是因为int32类型实现了Copy，所以这里不会报错
+
+再看一段代码：
+
+```rust
+fn main() {
+    let name = "fan-tasitc".to_string();
+    name;
+    println!("{}", name);
+}
+```
+
+编译错误：
+
+```rust
+--> src/main.rs:4:20
+  |
+2 |     let name = "fan-tasitc".to_string();
+  |         ---- move occurs because `name` has type `String`, which does not implement the `Copy` trait
+3 |     name;
+  |     ---- value moved here
+4 |     println!("{}", name);
+  |                    ^^^^ value borrowed here after move
+  |
+```
+
+这里单独的 `name;` 其实等价于 `let _tmp = name;` 即将值移动给了一个临时变量。
+
+## 引用类型的Copy和Clone
+
+引用类型是可Copy的，所以引用类型在Move的时候都会Copy 一个引用的副本，Copy前后的引用都指向同一个目标值。
+
+```rust
+fn main() {
+    let name = "fan-tastic".to_string();
+
+    // name2 和 name3 都是 name 的引用
+    let name2 = &name;
+    let name3 = name2; // Copy 引用
+}
+```
+
+引用类型也是可Clone的(实现Copy的时候要求也必须实现Clone，所以可Copy的类型也是可Clone的)，但是引用类型的clone()需注意: 对引用进行clone() 时，将拷贝引用类型本身，而不是拷贝引用所指向的数据本身。
+
+```rust
+
+#[derive(Clone)]
+struct Person;
+
+struct Person2;
+
+fn main() {
+    let a = Person;
+    let b = &a;
+    let _c = b.clone(); // _c的类型时 Persion
+
+    let aa = Person2;
+    let bb = &aa;
+    let _cc = bb.clone(); // _cc的类型时 &Person2
+}
+
+```
+
+- 没有实现Clone时，引用类型的clone()将等价于Copy
+- 实现了Clone时，引用类型的clone()将克隆并得到引用所指向的类型
+- 方法调用的符号`.`会自动解引用
