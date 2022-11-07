@@ -1,0 +1,473 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Rust trait和generic - fan-tastic.fun</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="fan-tastic.fun"><meta name=description content="Trait 从多种数据类型中抽取出这些类型之间可通用的方法或属性，并将它们放进另一个相对更抽象的类型中，是一种很好的代码复用方式，也是多态的一种体现方"><meta name=keywords content="rust,trait,trait object,generic,泛型"><meta name=generator content="Hugo 0.104.0 with theme even"><link rel=canonical href=https://www.fan-tastic.fun/post/rust_trait_and_generic/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Rust trait和generic"><meta property="og:description" content="Trait 从多种数据类型中抽取出这些类型之间可通用的方法或属性，并将它们放进另一个相对更抽象的类型中，是一种很好的代码复用方式，也是多态的一种体现方"><meta property="og:type" content="article"><meta property="og:url" content="https://www.fan-tastic.fun/post/rust_trait_and_generic/"><meta property="article:section" content="post"><meta property="article:published_time" content="2022-11-06T20:25:17+08:00"><meta property="article:modified_time" content="2022-11-07T16:47:28+08:00"><meta itemprop=name content="Rust trait和generic"><meta itemprop=description content="Trait 从多种数据类型中抽取出这些类型之间可通用的方法或属性，并将它们放进另一个相对更抽象的类型中，是一种很好的代码复用方式，也是多态的一种体现方"><meta itemprop=datePublished content="2022-11-06T20:25:17+08:00"><meta itemprop=dateModified content="2022-11-07T16:47:28+08:00"><meta itemprop=wordCount content="2881"><meta itemprop=keywords content="Rust,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Rust trait和generic"><meta name=twitter:description content="Trait 从多种数据类型中抽取出这些类型之间可通用的方法或属性，并将它们放进另一个相对更抽象的类型中，是一种很好的代码复用方式，也是多态的一种体现方"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
+<script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>fan-tastic</a></div><div class=mobile-navbar-icon><span></span>
+<span></span>
+<span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/><li class=mobile-menu-item>Home</li></a><a href=/post/><li class=mobile-menu-item>Archives</li></a><a href=/tags/><li class=mobile-menu-item>Tags</li></a><a href=/categories/><li class=mobile-menu-item>Categories</li></a><a href=/about/><li class=mobile-menu-item>About</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/ class=logo>fan-tastic</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/>Home</a></li><li class=menu-item><a class=menu-item-link href=/post/>Archives</a></li><li class=menu-item><a class=menu-item-link href=/tags/>Tags</a></li><li class=menu-item><a class=menu-item-link href=/categories/>Categories</a></li><li class=menu-item><a class=menu-item-link href=/about/>About</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Rust trait和generic</h1><div class=post-meta><span class=post-time>2022-11-06</span><div class=post-category><a href=/categories/rust/>Rust</a></div><span class=more-meta>2881 words</span>
+<span class=more-meta>6 mins read</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>Contents</h2><div class=post-toc-content><nav id=TableOfContents><ul><li><ul><li><a href=#trait>Trait</a><ul><li><a href=#trait继承>Trait继承</a></li><li><a href=#trait-object>Trait Object</a></li></ul></li><li><a href=#generic>Generic</a><ul><li><a href=#泛型的使用>泛型的使用</a></li></ul></li><li><a href=#trait-object-和-generic-对比>Trait Object 和 Generic 对比</a></li></ul></li></ul></nav></div></div><div class=post-content><h2 id=trait>Trait</h2><p>从多种数据类型中抽取出这些类型之间可通用的方法或属性，并将它们放进另一个相对更抽象的类型中，是一种很好的代码复用方式，也是多态的一种体现方式。</p><p>在面向对象语言中，这种功能一般通过接口(interface)实现，在 Rust 中，这种功能通过<code>Trait</code>实现，所以<code>Trait</code> 是可以被其他具体的类型实现（implement）,也可以在 <code>Trait</code> 中定义一些方法，实现该 <code>Trait</code> 的类型都必须实现这些方法。</p><p>Rust 中 <code>Trait</code> 的作用：
+<code>Trait</code> 类型：用于定义抽象行为，抽取那些共性的属性，主要表现是作为泛型的数据类型(对泛型进行限制)
+<code>Trait</code> 对象：即<code>Trait Object</code>，能用于多态</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span><span class=lnt>67
+</span><span class=lnt>68
+</span><span class=lnt>69
+</span><span class=lnt>70
+</span><span class=lnt>71
+</span><span class=lnt>72
+</span><span class=lnt>73
+</span><span class=lnt>74
+</span><span class=lnt>75
+</span><span class=lnt>76
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>trait</span><span class=w> </span><span class=n>Animal</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>eat</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>sleep</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>say</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;hello&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>struct</span> <span class=nc>People</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>name</span>: <span class=nb>String</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>age</span>: <span class=kt>i32</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>// 为 People 实现 Animal trait
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>impl</span><span class=w> </span><span class=n>Animal</span><span class=w> </span><span class=k>for</span><span class=w> </span><span class=n>People</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>eat</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{} is eating....&#34;</span><span class=p>,</span><span class=w> </span><span class=bp>self</span><span class=p>.</span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>sleep</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{} sleeping....&#34;</span><span class=p>,</span><span class=w> </span><span class=bp>self</span><span class=p>.</span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>impl</span><span class=w> </span><span class=n>People</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>get_age</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span>-&gt; <span class=kt>i32</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=bp>self</span><span class=p>.</span><span class=n>age</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>new</span><span class=p>(</span><span class=n>name</span>: <span class=nb>String</span><span class=p>,</span><span class=w> </span><span class=n>age</span>: <span class=kt>i32</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>Self</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>People</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>name</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>age</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>struct</span> <span class=nc>Cat</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>name</span>: <span class=nb>String</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>// 为 Cat 实现 Animal trait
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>impl</span><span class=w> </span><span class=n>Animal</span><span class=w> </span><span class=k>for</span><span class=w> </span><span class=n>Cat</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>eat</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{} is eating....&#34;</span><span class=p>,</span><span class=w> </span><span class=bp>self</span><span class=p>.</span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>sleep</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{} sleeping....&#34;</span><span class=p>,</span><span class=w> </span><span class=bp>self</span><span class=p>.</span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>say</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;maio miao....&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>impl</span><span class=w> </span><span class=n>Cat</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>new</span><span class=p>(</span><span class=n>name</span>: <span class=nb>String</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>Self</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>Cat</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>name</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>(){</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>user</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>People</span>::<span class=n>new</span><span class=p>(</span><span class=s>&#34;fan-tastic&#34;</span><span class=p>.</span><span class=n>to_string</span><span class=p>(),</span><span class=w> </span><span class=mi>18</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>user</span><span class=p>.</span><span class=n>eat</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>user</span><span class=p>.</span><span class=n>sleep</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>user</span><span class=p>.</span><span class=n>say</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>age</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>user</span><span class=p>.</span><span class=n>get_age</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;age is {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>age</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>miao</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Cat</span>::<span class=n>new</span><span class=p>(</span><span class=s>&#34;xiao bai&#34;</span><span class=p>.</span><span class=n>to_string</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>miao</span><span class=p>.</span><span class=n>eat</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>miao</span><span class=p>.</span><span class=n>sleep</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>miao</span><span class=p>.</span><span class=n>say</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p><code>trait Animal</code> 中 <code>eat</code> 和 <code>sleep</code> 方法都仅仅只规范了它们的方法签名，并没有定义方法体。<code>say</code> 方法则指定了函数签名并定义了方法体，如果实现 <code>trait Animal</code> 的对象没有 <code>say</code> 方法，则会使用<code>trait Animal</code>的方法，也可以自己在对象里覆盖，如 <code>impl Animal for People</code> 中的 say 方法。
+<code>impl Animal for Cat</code> 中只能写和 <code>trait Animal</code> 定义的方法，和 trait 无关的方法需要 在单独的 <code>impl Cat</code> 中写。 例如上面 new 方法 和 <code>get_age</code> 方法。</p><p>总结：Trait 描述了一种通用的功能，这种通用功能要求具有某些行为，这种通用功能可以被很多中类型实现，每个实现了这种通用功能的类型都可以称为： “具有该功能的类型”。</p><p>一个类型可以实现很多种Trait，那么这个类型就会具有很多公共能，可以调用这些 <code>Trait</code> 的方法。</p><p>对于开发经常使用的 <code>Struct</code> 和 <code>Enum</code> 类型需要自己手动去实现需要的<code>Trait</code>，有些常用的可以通过 <code>#[derive()]</code>实现：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=cp>#[derive(Debug, Copy, Clone)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>struct</span> <span class=nc>A</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>num</span>:<span class=kt>i32</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>f</span>: <span class=kt>f64</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=trait继承>Trait继承</h3><p>Rust 支持 Trait 之间的继承</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>trait</span><span class=w> </span><span class=n>A</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>fun_in_a</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>trait</span><span class=w> </span><span class=n>B</span>: <span class=nc>A</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>fun_in_b</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>struct</span> <span class=nc>S</span><span class=w> </span><span class=p>{}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>impl</span><span class=w> </span><span class=n>B</span><span class=w> </span><span class=k>for</span><span class=w> </span><span class=n>S</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>fun_in_b</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;fun in B&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>impl</span><span class=w> </span><span class=n>A</span><span class=w> </span><span class=k>for</span><span class=w> </span><span class=n>S</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>fun_in_a</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;fun in A&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>(){</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>s</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>S</span><span class=p>{};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>s</span><span class=p>.</span><span class=n>fun_in_a</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>s</span><span class=p>.</span><span class=n>fun_in_b</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>这种情况需要注意，因为 <code>trait B: A</code> 所以 我们需要为 S 实现 <code>trait B</code> 和 <code>trait A</code> ,这两个需要分开写，并不能将<code>fn fun_in_a(&self)</code> 写在 <code>impl B for S</code> 中。
+个人觉得这种对于阅读还是非常方便，可以很直观的看到当前对象实现哪些 <code>trait</code></p><h3 id=trait-object>Trait Object</h3><p><code>Trait Object</code> 是什么，通过一段代码来理解更清楚：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span><span class=lnt>67
+</span><span class=lnt>68
+</span><span class=lnt>69
+</span><span class=lnt>70
+</span><span class=lnt>71
+</span><span class=lnt>72
+</span><span class=lnt>73
+</span><span class=lnt>74
+</span><span class=lnt>75
+</span><span class=lnt>76
+</span><span class=lnt>77
+</span><span class=lnt>78
+</span><span class=lnt>79
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>trait</span><span class=w> </span><span class=n>Animal</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>eat</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>sleep</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>say</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;hello&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>struct</span> <span class=nc>People</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>name</span>: <span class=nb>String</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>age</span>: <span class=kt>i32</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>// 为 People 实现 Animal trait
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>impl</span><span class=w> </span><span class=n>Animal</span><span class=w> </span><span class=k>for</span><span class=w> </span><span class=n>People</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>eat</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{} is eating....&#34;</span><span class=p>,</span><span class=w> </span><span class=bp>self</span><span class=p>.</span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>sleep</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{} sleeping....&#34;</span><span class=p>,</span><span class=w> </span><span class=bp>self</span><span class=p>.</span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>impl</span><span class=w> </span><span class=n>People</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>new</span><span class=p>(</span><span class=n>name</span>: <span class=nb>String</span><span class=p>,</span><span class=w> </span><span class=n>age</span>: <span class=kt>i32</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>Self</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>People</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>name</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>age</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>get_age</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span>-&gt; <span class=kt>i32</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=bp>self</span><span class=p>.</span><span class=n>age</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>struct</span> <span class=nc>Cat</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>name</span>: <span class=nb>String</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>// 为 Cat 实现 Animal trait
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>impl</span><span class=w> </span><span class=n>Animal</span><span class=w> </span><span class=k>for</span><span class=w> </span><span class=n>Cat</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>eat</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{} is eating....&#34;</span><span class=p>,</span><span class=w> </span><span class=bp>self</span><span class=p>.</span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>sleep</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{} sleeping....&#34;</span><span class=p>,</span><span class=w> </span><span class=bp>self</span><span class=p>.</span><span class=n>name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>say</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;maio miao....&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>impl</span><span class=w> </span><span class=n>Cat</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>new</span><span class=p>(</span><span class=n>name</span>: <span class=nb>String</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>Self</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>Cat</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>name</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>animal_say</span><span class=p>(</span><span class=n>animal</span>: <span class=kp>&amp;</span><span class=nc>dyn</span><span class=w> </span><span class=n>Animal</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>animal</span><span class=p>.</span><span class=n>say</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>animal_say2</span><span class=p>(</span><span class=n>animal</span>: <span class=nc>impl</span><span class=w> </span><span class=n>Animal</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>animal</span><span class=p>.</span><span class=n>say</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>(){</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>user</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>People</span>::<span class=n>new</span><span class=p>(</span><span class=s>&#34;fan-tastic&#34;</span><span class=p>.</span><span class=n>to_string</span><span class=p>(),</span><span class=w> </span><span class=mi>18</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>miao</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Cat</span>::<span class=n>new</span><span class=p>(</span><span class=s>&#34;xiao bai&#34;</span><span class=p>.</span><span class=n>to_string</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>animal_say</span><span class=p>(</span><span class=o>&amp;</span><span class=n>user</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>animal_say</span><span class=p>(</span><span class=o>&amp;</span><span class=n>miao</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>animal_say2</span><span class=p>(</span><span class=n>user</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>animal_say2</span><span class=p>(</span><span class=n>miao</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><ul><li>Cat 和 People 都实现了 <code>trait Animal</code>, 所以 都可以作为 <code>trait Animal</code> 的 <code>trait Object</code> 来使用，即<code>trait Object</code>是Rust 支持的一种数据类型。</li><li>对于 <code>trait Animal</code>， <code>dyn Animal</code> 表示 <code>trait Animal</code> 的 <code>trait Object</code></li><li><code>trait Object</code> 的大小不固定，所以使用时基本都是引用的方式 <code>&dyn Animal</code></li><li><code>trait Object</code> 的引用保存在栈中，包含两份数据：<code>trait Object</code> 所指向的数据的指针 和一个虚表 <code>vtable</code>的指针</li><li>虽然 <code>trait Object</code>没有固定大小，但它的引用类型的大小是固定的，它由两个指针组成，因此占用两个指针大小，即两个机器字长</li><li><code>vtable</code> 中保存了实现<code>trait Animal</code>对象也可以调用的方法。当调用方法时，直接从vtable中找到方法并调用。之所以要使用一个<code>vtable</code>来保存各实例的方法，是因为实现了<code>trait Animal</code>的类型有多种，这些类型拥有的方法各不相同，当将这些类型的实例都当作<code>trait Animal</code>来使用时(此时，它们全都看作是<code>trait Animal</code>类型的实例)，有必要区分这些实例各自有哪些方法可调用</li><li><code>Trait Object</code>的引用方式有多种。例如对于<code>trait Animal</code>，其<code>Trait Object</code>类型的引用可以是<code>&dyn Animal</code>、<code>Box&lt;dyn Animal></code>、<code>Rc&lt;dyn Animal></code>等</li></ul><p>这里需要注意，对象一旦被当作 <code>Trait Object</code> 使用，如代码中的 <code>animal_say(&user);</code> 那么 <code>user</code> 将不在是 <code>People</code>的实例对象，<code>user</code> 中保存了作为 <code>Trait Object</code> 对象的数据指针(指向<code>People</code>的实例对象)和行为指针（指向vtable）。
+同时 <code>fn animal_say2(animal: impl Animal)</code> 是会在编译时根据根据实现 <code>trait Animal</code> 的对象进行展开</p><p>同时是可以在这样写：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=kd>let</span><span class=w> </span><span class=n>user2</span>: <span class=kp>&amp;</span><span class=nc>dyn</span><span class=w> </span><span class=n>Animal</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=o>&amp;</span><span class=n>People</span>::<span class=n>new</span><span class=p>(</span><span class=s>&#34;fan-tastic&#34;</span><span class=p>.</span><span class=n>to_string</span><span class=p>(),</span><span class=w> </span><span class=mi>18</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>但是这样写之后，user2 就只能调用<code>trait Animal</code> 定义的方法，无法调用和 ``trait Animal<code>无关的实例方法，如代码中的</code>get_age` 方法</p><h2 id=generic>Generic</h2><p>泛型，对于Rust来说，在编译阶段，泛型会被替换为它代表的数据类型, 所以一个函数可能会变成多个具体数据类型的函数，这种膨胀会导致编译后的程序文件变大。不过好好处就是运行时不用消消耗额外的资源计算泛型所代表的具体类型。</p><p>泛型 可以用于解决代码冗余的问题：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>ops</span>::<span class=n>Add</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>double</span><span class=o>&lt;</span><span class=n>T</span><span class=o>&gt;</span><span class=p>(</span><span class=n>i</span>:<span class=nc>T</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>T</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>where</span><span class=w> </span><span class=n>T</span>: <span class=nc>Add</span><span class=o>&lt;</span><span class=n>Output</span><span class=o>=</span><span class=n>T</span><span class=o>&gt;</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=nb>Clone</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=nb>Copy</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>     </span><span class=n>i</span><span class=o>+</span><span class=n>i</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>double2</span><span class=o>&lt;</span><span class=n>T</span>: <span class=nc>Add</span><span class=o>&lt;</span><span class=n>Output</span><span class=o>=</span><span class=n>T</span><span class=o>&gt;</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=nb>Clone</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=nb>Copy</span><span class=o>&gt;</span><span class=p>(</span><span class=n>i</span>:<span class=nc>T</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>T</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>i</span><span class=o>+</span><span class=n>i</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>(){</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>double</span><span class=p>(</span><span class=mi>3_</span><span class=k>i32</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>double</span><span class=p>(</span><span class=mi>3_</span><span class=k>f64</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>double2</span><span class=p>(</span><span class=mi>3_</span><span class=k>f64</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><ul><li><code>T</code> 就是泛型，你可以使用你喜欢的字母，这个没有限制，只是用来代表各种可能的数据类型。</li><li><code>fn double&lt;T>(i:T) -> T</code>:<ul><li>函数名称后面的<code>&lt;T></code>表示在函数作用域内定义一个泛型<code>T</code>,这个泛型只能在函数签名和函数体内使用</li><li>参数部分<code>i: T</code>表示参数i的类型是泛型<code>T</code>。</li><li>返回值部分<code>-> T</code>表示该函数的返回值类型是泛型<code>T</code></li></ul></li><li><code>where T: Add&lt;Output=T> + Clone + Copy</code> 通过<code>where</code> 对泛型<code>T</code>添加限制条件，这里表示泛型<code>T</code> 必须实现 <code>Add</code>, <code>Copy</code>, <code>Clone</code> 三种<code>trait</code></li><li>double2 和 double 是两种写法，效果是一样的，不过 在比较复杂的的情况时，第一种写法看着更加直观。</li></ul><p>对于泛型 做限制的原因：</p><ul><li>一方面的原因是函数体内需要某种<code>Trait</code>提供的功能(比如函数体内要对i执行加法操作，需要的是<code>std::ops::Add</code>的功能)</li><li>另一方面的原因是要让泛型T所能代表的数据类型足够精确化(如果不做任何限制，泛型将能代表任意数据类型)。</li></ul><p>泛型的引用：<code>&T</code>或<code>&mut T</code>。</p><h3 id=泛型的使用>泛型的使用</h3><p>泛型 可以在很多地方使用，例如 <code>Struct</code>、<code>Enum</code>、<code>impl</code>、<code>Trait</code> :</p><p><code>Struct</code> 和 <code>impl</code>实现中：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>struct</span> <span class=nc>S</span><span class=o>&lt;</span><span class=n>T</span><span class=o>&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>a</span>: <span class=nc>T</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>impl</span><span class=o>&lt;</span><span class=n>T</span><span class=o>&gt;</span><span class=w> </span><span class=n>S</span><span class=o>&lt;</span><span class=n>T</span><span class=o>&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>new</span><span class=p>(</span><span class=n>item</span>:<span class=nc>T</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>Self</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>S</span><span class=w> </span><span class=p>{</span><span class=n>a</span>:<span class=nc>item</span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p><code>Enum</code> 中：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>enum</span> <span class=nb>Option</span><span class=o>&lt;</span><span class=n>T</span><span class=o>&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nb>Some</span><span class=p>(</span><span class=n>T</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nb>None</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p><code>Trait</code>使用泛型：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=c1>// 表示将某种类型T转换为当前类型
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>trait</span><span class=w> </span><span class=nb>From</span><span class=o>&lt;</span><span class=n>T</span><span class=o>&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>fn</span> <span class=nf>from</span><span class=p>(</span><span class=n>T</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>Self</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=trait-object-和-generic-对比>Trait Object 和 Generic 对比</h2><ul><li><code>Trait Object</code>可以被看作一种数据类型，它总是以引用的方式被使用，在运行期间，它在栈中保存了具体类型的实例数据和实现自该<code>Trait</code>的方法。</li><li>泛型不是一种数据类型，它可被看作是数据类型的参数形式或抽象形式，在编译期间会被替换为具体的数据类型。</li><li><code>Trait Object</code> 也被称为动态分发(dynamic dispatch)，在程序运行期间动态的决定具体的类型</li><li>泛型是静态分派，在编译期间代码膨胀，将反省参数转换为每种具体的类型。</li></ul></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+<span class=item-content>fan-tastic.fun</span></p><p class=copyright-item><span class=item-title>LastMod</span>
+<span class=item-content>2022-11-07
+<a href=#ZgotmplZ/commit/3588ce6f06007ba40814d77946050f2ab3de9554 title="feat: 增加 rust trait 和 generic 的笔记">(3588ce6)</a></span></p><p class=copyright-item><span class=item-title>License</span>
+<span class=item-content><a rel="license noopener" href=https://creativecommons.org/licenses/by/4.0/ target=_blank>知识共享署名4.0</a></span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/rust/>Rust</a></div><nav class=post-nav><a class=next href=/post/rust_struct_and_enum/><span class="next-text nav-default">Rust的Struct和Enum</span>
+<span class="next-text nav-mobile">Next</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div><div id=gitalk-container></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css crossorigin=anonymous><script src=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js crossorigin=anonymous></script>
+<script type=text/javascript>var gitalk=new Gitalk({id:"2022-11-06 20:25:17 \u002b0800 \u002b0800",title:"Rust trait和generic",clientID:"8e56c7d6ce34f788ca8f",clientSecret:"d8012ab38028c2fffa457e0449f958da07dc84e5",repo:"fan-tastic.fun",owner:"peanut-cc",admin:["peanut-cc"],body:decodeURI(location.href)});gitalk.render("gitalk-container")</script><noscript>Please enable JavaScript to view the <a href=https://github.com/gitalk/gitalk>comments powered by gitalk.</a></noscript></div></main><footer id=footer class=footer><div class=social-links><a href=https://github.com/peanut-cc class="iconfont icon-github" title=github></a>
+<a href=https://www.fan-tastic.fun/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>Powered by <a class=hexo-link href=https://gohugo.io>Hugo</a></span>
+<span class=division>|</span>
+<span class=theme-info>Theme -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2022<span class=heart><i class="iconfont icon-heart"></i></span><span>by fan-tastic.fun</span>
+<span><a class=theme-link href=https://beian.miit.gov.cn/>豫ICP备2022023372号-1</a></span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script>
+<script type=text/javascript src=/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js></script></body></html>
