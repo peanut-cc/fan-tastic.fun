@@ -81,3 +81,34 @@ def make_adder(n):
 - Express general methods of computation.
 - Remove repetition from programs.
 - Separate concerns among functions.
+
+## Enviroments for Heigher-Order Functions
+
+`Heigher-order function`: A function that takes a function as an argument value or returns a function as a return value.
+
+Our environment diagrams already handle the case of heigher-order functions!
+
+```python
+def make_adder(n):
+    def adder(k):
+        return k+n
+    return adder
+```
+
+- Every user-defined function has a parent frame(often global)
+- The parent of a function is the frame in which it was defined.
+- The parent of a frame is the parent of the function called.
+
+### How to Draw an Enviroment Diagram
+
+When a function is defined:
+
+Create a function value: `func<name>(<formal parameters>)[parent=<parent>]`
+Bind `<name>` to the function value in the current frame.
+
+When a function is called:
+
+1. Add a local fram, titled with the `<name>` of the function being called.
+2. Copy the parent of the function to the local frame: `[parent=<label>]`
+3. Bind the `formal parameters` to the arguments in the local frame.
+4. Execute the body of the function in the environment that starts with the local frame.
