@@ -1,0 +1,354 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>CS61a_lab01 - fan-tastic.fun</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="fan-tastic.fun"><meta name=description content="Although this lab is not difficult, after writing the answer and comparing it with the answer, I found that there is still something to learn.
+lab01.1 1 2 3 4 5 6 7 8 9 10 11 12 def falling(n, k): &amp;#34;&amp;#34;&amp;#34;Compute the falling factorial of n to depth k. &amp;gt;&amp;gt;&amp;gt; falling(6, 3) # 6 * 5 * 4 120 &amp;gt;&amp;gt;&amp;gt; falling(4, 3) # 4 * 3 * 2 24 &amp;gt;&amp;gt;&amp;gt; falling(4, 1) # 4 4 &amp;gt;&amp;gt;&amp;gt; falling(4, 0) 1 &amp;#34;&amp;#34;&amp;#34; The code written by this lab itself is indeed more concise than the answer."><meta name=keywords content="fan-tastic,Rust,dev,Rust,fan-tasitc.fun,fun"><meta name=generator content="Hugo 0.104.0 with theme even"><link rel=canonical href=https://www.fan-tastic.fun/post/cs61a_lab01/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="CS61a_lab01"><meta property="og:description" content="Although this lab is not difficult, after writing the answer and comparing it with the answer, I found that there is still something to learn.
+lab01.1 1 2 3 4 5 6 7 8 9 10 11 12 def falling(n, k): &#34;&#34;&#34;Compute the falling factorial of n to depth k. >>> falling(6, 3) # 6 * 5 * 4 120 >>> falling(4, 3) # 4 * 3 * 2 24 >>> falling(4, 1) # 4 4 >>> falling(4, 0) 1 &#34;&#34;&#34; The code written by this lab itself is indeed more concise than the answer."><meta property="og:type" content="article"><meta property="og:url" content="https://www.fan-tastic.fun/post/cs61a_lab01/"><meta property="article:section" content="post"><meta property="article:published_time" content="2022-12-11T14:29:47+08:00"><meta property="article:modified_time" content="2022-12-11T15:41:07+08:00"><meta itemprop=name content="CS61a_lab01"><meta itemprop=description content="Although this lab is not difficult, after writing the answer and comparing it with the answer, I found that there is still something to learn.
+lab01.1 1 2 3 4 5 6 7 8 9 10 11 12 def falling(n, k): &#34;&#34;&#34;Compute the falling factorial of n to depth k. >>> falling(6, 3) # 6 * 5 * 4 120 >>> falling(4, 3) # 4 * 3 * 2 24 >>> falling(4, 1) # 4 4 >>> falling(4, 0) 1 &#34;&#34;&#34; The code written by this lab itself is indeed more concise than the answer."><meta itemprop=datePublished content="2022-12-11T14:29:47+08:00"><meta itemprop=dateModified content="2022-12-11T15:41:07+08:00"><meta itemprop=wordCount content="874"><meta itemprop=keywords content="cs61a,python,"><meta name=twitter:card content="summary"><meta name=twitter:title content="CS61a_lab01"><meta name=twitter:description content="Although this lab is not difficult, after writing the answer and comparing it with the answer, I found that there is still something to learn.
+lab01.1 1 2 3 4 5 6 7 8 9 10 11 12 def falling(n, k): &#34;&#34;&#34;Compute the falling factorial of n to depth k. >>> falling(6, 3) # 6 * 5 * 4 120 >>> falling(4, 3) # 4 * 3 * 2 24 >>> falling(4, 1) # 4 4 >>> falling(4, 0) 1 &#34;&#34;&#34; The code written by this lab itself is indeed more concise than the answer."><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
+<script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>fan-tastic</a></div><div class=mobile-navbar-icon><span></span>
+<span></span>
+<span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/><li class=mobile-menu-item>Home</li></a><a href=/post/><li class=mobile-menu-item>Archives</li></a><a href=/tags/><li class=mobile-menu-item>Tags</li></a><a href=/categories/><li class=mobile-menu-item>Categories</li></a><a href=/about/><li class=mobile-menu-item>About</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/ class=logo>fan-tastic</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/>Home</a></li><li class=menu-item><a class=menu-item-link href=/post/>Archives</a></li><li class=menu-item><a class=menu-item-link href=/tags/>Tags</a></li><li class=menu-item><a class=menu-item-link href=/categories/>Categories</a></li><li class=menu-item><a class=menu-item-link href=/about/>About</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>CS61a_lab01</h1><div class=post-meta><span class=post-time>2022-12-11</span><div class=post-category><a href=/categories/cs61a/>cs61a</a></div><span class=more-meta>874 words</span>
+<span class=more-meta>5 mins read</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>Contents</h2><div class=post-toc-content><nav id=TableOfContents><ul><li><ul><li><a href=#lab011>lab01.1</a></li><li><a href=#lab012>lab01.2</a></li><li><a href=#lab013>lab01.3</a></li></ul></li></ul></nav></div></div><div class=post-content><p>Although this lab is not difficult, after writing the answer and comparing it with the answer, I found that there is still something to learn.</p><h2 id=lab011>lab01.1</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=k>def</span> <span class=nf>falling</span><span class=p>(</span><span class=n>n</span><span class=p>,</span> <span class=n>k</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;&#34;&#34;Compute the falling factorial of n to depth k.
+</span></span></span><span class=line><span class=cl><span class=s2>
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; falling(6, 3)  # 6 * 5 * 4
+</span></span></span><span class=line><span class=cl><span class=s2>    120
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; falling(4, 3)  # 4 * 3 * 2
+</span></span></span><span class=line><span class=cl><span class=s2>    24
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; falling(4, 1)  # 4
+</span></span></span><span class=line><span class=cl><span class=s2>    4
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; falling(4, 0)
+</span></span></span><span class=line><span class=cl><span class=s2>    1
+</span></span></span><span class=line><span class=cl><span class=s2>    &#34;&#34;&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><p>The code written by this lab itself is indeed more concise than the answer.I feel that I have some problems in my thinking. My own thinking is more troublesome, although my own can also solve the problem.Perhaps more practice is needed to exercise the thinking ability.</p><p>my answer:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=k>def</span> <span class=nf>falling</span><span class=p>(</span><span class=n>n</span><span class=p>,</span> <span class=n>k</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;&#34;&#34;Compute the falling factorial of n to depth k.
+</span></span></span><span class=line><span class=cl><span class=s2>
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; falling(6, 3)  # 6 * 5 * 4
+</span></span></span><span class=line><span class=cl><span class=s2>    120
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; falling(4, 3)  # 4 * 3 * 2
+</span></span></span><span class=line><span class=cl><span class=s2>    24
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; falling(4, 1)  # 4
+</span></span></span><span class=line><span class=cl><span class=s2>    4
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; falling(4, 0)
+</span></span></span><span class=line><span class=cl><span class=s2>    1
+</span></span></span><span class=line><span class=cl><span class=s2>    &#34;&#34;&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=n>k</span> <span class=o>==</span> <span class=mi>0</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=mi>1</span>
+</span></span><span class=line><span class=cl>    <span class=n>result</span> <span class=o>=</span> <span class=mi>1</span>
+</span></span><span class=line><span class=cl>    <span class=n>number</span> <span class=o>=</span> <span class=n>n</span> <span class=o>-</span> <span class=n>k</span>
+</span></span><span class=line><span class=cl>    <span class=k>while</span> <span class=n>n</span> <span class=o>&gt;</span> <span class=n>number</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>        <span class=n>result</span> <span class=o>=</span> <span class=n>result</span> <span class=o>*</span> <span class=n>n</span>
+</span></span><span class=line><span class=cl>        <span class=n>n</span> <span class=o>-=</span> <span class=mi>1</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=n>result</span>
+</span></span></code></pre></td></tr></table></div></div><p>better answer:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=k>def</span> <span class=nf>falling</span><span class=p>(</span><span class=n>n</span><span class=p>,</span> <span class=n>k</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;&#34;&#34;Compute the falling factorial of n to depth k.
+</span></span></span><span class=line><span class=cl><span class=s2>
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; falling(6, 3)  # 6 * 5 * 4
+</span></span></span><span class=line><span class=cl><span class=s2>    120
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; falling(4, 3)  # 4 * 3 * 2
+</span></span></span><span class=line><span class=cl><span class=s2>    24
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; falling(4, 1)  # 4
+</span></span></span><span class=line><span class=cl><span class=s2>    4
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; falling(4, 0)
+</span></span></span><span class=line><span class=cl><span class=s2>    1
+</span></span></span><span class=line><span class=cl><span class=s2>    &#34;&#34;&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=n>total</span><span class=p>,</span> <span class=n>stop</span> <span class=o>=</span> <span class=mi>1</span><span class=p>,</span> <span class=n>n</span> <span class=o>-</span> <span class=n>k</span>
+</span></span><span class=line><span class=cl>    <span class=k>while</span> <span class=n>n</span> <span class=o>&gt;</span> <span class=n>stop</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>        <span class=n>total</span><span class=p>,</span> <span class=n>n</span> <span class=o>=</span> <span class=n>total</span> <span class=o>*</span> <span class=n>n</span><span class=p>,</span> <span class=n>n</span> <span class=o>-</span> <span class=mi>1</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=n>total</span>
+</span></span></code></pre></td></tr></table></div></div><p>For this lab, my idea is correct, but the code is not concise engouth.
+After solving the problem, I should try to optimize the code to see if there is a more elegant way tof coding.</p><h2 id=lab012>lab01.2</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=k>def</span> <span class=nf>sum_digits</span><span class=p>(</span><span class=n>y</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;&#34;&#34;Sum all the digits of y.
+</span></span></span><span class=line><span class=cl><span class=s2>
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; sum_digits(10) # 1 + 0 = 1
+</span></span></span><span class=line><span class=cl><span class=s2>    1
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; sum_digits(4224) # 4 + 2 + 2 + 4 = 12
+</span></span></span><span class=line><span class=cl><span class=s2>    12
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; sum_digits(1234567890)
+</span></span></span><span class=line><span class=cl><span class=s2>    45
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; a = sum_digits(123) # make sure that you are using return rather than print
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; a
+</span></span></span><span class=line><span class=cl><span class=s2>    6
+</span></span></span><span class=line><span class=cl><span class=s2>    &#34;&#34;&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><p>my answer:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=k>def</span> <span class=nf>sum_digits</span><span class=p>(</span><span class=n>y</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;&#34;&#34;Sum all the digits of y.
+</span></span></span><span class=line><span class=cl><span class=s2>
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; sum_digits(10) # 1 + 0 = 1
+</span></span></span><span class=line><span class=cl><span class=s2>    1
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; sum_digits(4224) # 4 + 2 + 2 + 4 = 12
+</span></span></span><span class=line><span class=cl><span class=s2>    12
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; sum_digits(1234567890)
+</span></span></span><span class=line><span class=cl><span class=s2>    45
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; a = sum_digits(123) # make sure that you are using return rather than print
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; a
+</span></span></span><span class=line><span class=cl><span class=s2>    6
+</span></span></span><span class=line><span class=cl><span class=s2>    &#34;&#34;&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=n>result</span> <span class=o>=</span> <span class=mi>0</span>
+</span></span><span class=line><span class=cl>    <span class=k>while</span> <span class=n>y</span> <span class=o>!=</span> <span class=mi>0</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>        <span class=n>result</span> <span class=o>+=</span> <span class=n>y</span> <span class=o>%</span> <span class=mi>10</span>
+</span></span><span class=line><span class=cl>        <span class=n>y</span> <span class=o>=</span> <span class=n>y</span> <span class=o>//</span> <span class=mi>10</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=n>result</span>
+</span></span></code></pre></td></tr></table></div></div><p>better code:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=k>def</span> <span class=nf>sum_digits</span><span class=p>(</span><span class=n>y</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;&#34;&#34;Sum all the digits of y.
+</span></span></span><span class=line><span class=cl><span class=s2>
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; sum_digits(10) # 1 + 0 = 1
+</span></span></span><span class=line><span class=cl><span class=s2>    1
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; sum_digits(4224) # 4 + 2 + 2 + 4 = 12
+</span></span></span><span class=line><span class=cl><span class=s2>    12
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; sum_digits(1234567890)
+</span></span></span><span class=line><span class=cl><span class=s2>    45
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; a = sum_digits(123) # make sure that you are using return rather than print
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; a
+</span></span></span><span class=line><span class=cl><span class=s2>    6
+</span></span></span><span class=line><span class=cl><span class=s2>    &#34;&#34;&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=n>total</span> <span class=o>=</span> <span class=mi>0</span>
+</span></span><span class=line><span class=cl>    <span class=k>while</span> <span class=n>y</span> <span class=o>&gt;</span> <span class=mi>0</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>        <span class=n>total</span><span class=p>,</span> <span class=n>y</span> <span class=o>=</span> <span class=n>total</span> <span class=o>+</span> <span class=n>y</span> <span class=o>%</span> <span class=mi>10</span><span class=p>,</span> <span class=n>y</span> <span class=o>//</span> <span class=mi>10</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=n>total</span>
+</span></span></code></pre></td></tr></table></div></div><p>For this lab, my idea is correct,the code name is neat and the difference is not big, but the code of the answer is more pythonic.</p><h2 id=lab013>lab01.3</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=k>def</span> <span class=nf>double_eights</span><span class=p>(</span><span class=n>n</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;&#34;&#34;Return true if n has two eights in a row.
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; double_eights(8)
+</span></span></span><span class=line><span class=cl><span class=s2>    False
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; double_eights(88)
+</span></span></span><span class=line><span class=cl><span class=s2>    True
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; double_eights(2882)
+</span></span></span><span class=line><span class=cl><span class=s2>    True
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; double_eights(880088)
+</span></span></span><span class=line><span class=cl><span class=s2>    True
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; double_eights(12345)
+</span></span></span><span class=line><span class=cl><span class=s2>    False
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; double_eights(80808080)
+</span></span></span><span class=line><span class=cl><span class=s2>    False
+</span></span></span><span class=line><span class=cl><span class=s2>    &#34;&#34;&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><p>my answer:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=k>def</span> <span class=nf>double_eights</span><span class=p>(</span><span class=n>n</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;&#34;&#34;Return true if n has two eights in a row.
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; double_eights(8)
+</span></span></span><span class=line><span class=cl><span class=s2>    False
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; double_eights(88)
+</span></span></span><span class=line><span class=cl><span class=s2>    True
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; double_eights(2882)
+</span></span></span><span class=line><span class=cl><span class=s2>    True
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; double_eights(880088)
+</span></span></span><span class=line><span class=cl><span class=s2>    True
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; double_eights(12345)
+</span></span></span><span class=line><span class=cl><span class=s2>    False
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; double_eights(80808080)
+</span></span></span><span class=line><span class=cl><span class=s2>    False
+</span></span></span><span class=line><span class=cl><span class=s2>    &#34;&#34;&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=n>is_appeared_eight</span> <span class=o>=</span> <span class=kc>False</span>
+</span></span><span class=line><span class=cl>    <span class=k>while</span> <span class=n>n</span> <span class=o>!=</span> <span class=mi>0</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>        <span class=n>result</span> <span class=o>=</span> <span class=n>n</span> <span class=o>%</span> <span class=mi>10</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=n>is_appeared_eight</span> <span class=ow>and</span> <span class=n>result</span> <span class=o>==</span> <span class=mi>8</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=kc>True</span>
+</span></span><span class=line><span class=cl>        <span class=k>elif</span> <span class=n>is_appeared_eight</span> <span class=ow>and</span> <span class=n>result</span> <span class=o>!=</span> <span class=mi>8</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>            <span class=n>is_appeared_eight</span> <span class=o>=</span> <span class=kc>False</span>
+</span></span><span class=line><span class=cl>        <span class=k>elif</span> <span class=ow>not</span> <span class=n>is_appeared_eight</span> <span class=ow>and</span> <span class=n>result</span> <span class=o>==</span> <span class=mi>8</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>            <span class=n>is_appeared_eight</span> <span class=o>=</span> <span class=kc>True</span>
+</span></span><span class=line><span class=cl>        <span class=n>n</span> <span class=o>=</span> <span class=n>n</span> <span class=o>//</span> <span class=mi>10</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=kc>False</span>
+</span></span></code></pre></td></tr></table></div></div><p>better answer:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=k>def</span> <span class=nf>double_eights</span><span class=p>(</span><span class=n>n</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;&#34;&#34;Return true if n has two eights in a row.
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; double_eights(8)
+</span></span></span><span class=line><span class=cl><span class=s2>    False
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; double_eights(88)
+</span></span></span><span class=line><span class=cl><span class=s2>    True
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; double_eights(2882)
+</span></span></span><span class=line><span class=cl><span class=s2>    True
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; double_eights(880088)
+</span></span></span><span class=line><span class=cl><span class=s2>    True
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; double_eights(12345)
+</span></span></span><span class=line><span class=cl><span class=s2>    False
+</span></span></span><span class=line><span class=cl><span class=s2>    &gt;&gt;&gt; double_eights(80808080)
+</span></span></span><span class=line><span class=cl><span class=s2>    False
+</span></span></span><span class=line><span class=cl><span class=s2>    &#34;&#34;&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=n>prev_eight</span> <span class=o>=</span> <span class=kc>False</span>
+</span></span><span class=line><span class=cl>    <span class=k>while</span> <span class=n>n</span> <span class=o>&gt;</span> <span class=mi>0</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>        <span class=n>last_digit</span> <span class=o>=</span> <span class=n>n</span> <span class=o>%</span> <span class=mi>10</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=n>last_digit</span> <span class=o>==</span> <span class=mi>8</span> <span class=ow>and</span> <span class=n>prev_eight</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=kc>True</span>
+</span></span><span class=line><span class=cl>        <span class=k>elif</span> <span class=n>last_digit</span> <span class=o>==</span> <span class=mi>8</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>            <span class=n>prev_eight</span> <span class=o>=</span> <span class=kc>True</span>
+</span></span><span class=line><span class=cl>        <span class=k>else</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>            <span class=n>prev_eight</span> <span class=o>=</span> <span class=kc>False</span>
+</span></span><span class=line><span class=cl>        <span class=n>n</span> <span class=o>=</span> <span class=n>n</span> <span class=o>//</span> <span class=mi>10</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=kc>False</span>
+</span></span></code></pre></td></tr></table></div></div><p>In this lab, I think the if/else of my answer looks clearer.</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+<span class=item-content>fan-tastic.fun</span></p><p class=copyright-item><span class=item-title>LastMod</span>
+<span class=item-content>2022-12-11
+<a href=#ZgotmplZ/commit/3dc5b98ede644070fea78f4361d247d17c8e7477 title="feat: 🎸 add cs61a lab01">(3dc5b98)</a></span></p><p class=copyright-item><span class=item-title>License</span>
+<span class=item-content><a rel="license noopener" href=https://creativecommons.org/licenses/by/4.0/ target=_blank>知识共享署名4.0</a></span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/cs61a/>cs61a</a>
+<a href=/tags/python/>python</a></div><nav class=post-nav><a class=next href=/post/python_function/><span class="next-text nav-default">How to define Function</span>
+<span class="next-text nav-mobile">Next</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div><div id=gitalk-container></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css crossorigin=anonymous><script src=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js crossorigin=anonymous></script>
+<script type=text/javascript>var gitalk=new Gitalk({id:"2022-12-11 14:29:47 \u002b0800 \u002b0800",title:"CS61a_lab01",clientID:"8e56c7d6ce34f788ca8f",clientSecret:"d8012ab38028c2fffa457e0449f958da07dc84e5",repo:"fan-tastic.fun",owner:"peanut-cc",admin:["peanut-cc"],body:decodeURI(location.href)});gitalk.render("gitalk-container")</script><noscript>Please enable JavaScript to view the <a href=https://github.com/gitalk/gitalk>comments powered by gitalk.</a></noscript></div></main><footer id=footer class=footer><div class=social-links><a href=https://github.com/peanut-cc class="iconfont icon-github" title=github></a>
+<a href=https://www.fan-tastic.fun/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>Powered by <a class=hexo-link href=https://gohugo.io>Hugo</a></span>
+<span class=division>|</span>
+<span class=theme-info>Theme -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2022<span class=heart><i class="iconfont icon-heart"></i></span><span>by fan-tastic.fun</span>
+<span><a class=theme-link href=https://beian.miit.gov.cn/>豫ICP备2022023372号-1</a></span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script>
+<script type=text/javascript src=/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js></script></body></html>
