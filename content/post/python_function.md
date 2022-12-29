@@ -112,3 +112,26 @@ When a function is called:
 2. Copy the parent of the function to the local frame: `[parent=<label>]`
 3. Bind the `formal parameters` to the arguments in the local frame.
 4. Execute the body of the function in the environment that starts with the local frame.
+
+### Labmda Function Environments
+
+A lambda function's parent is the current frame in which the lambda expression is evaluated.
+
+```python
+a = 1
+def f(g):
+    a = 2
+    return lambda y: a * g(y)
+f(lambda y: a + y)(a)
+```
+
+![Environment Diagrams with Lambda](/images/python_function/lambda.png)
+
+personal understanding:
+
+- The current program is running with a global global frame When the program is loaded.
+- `a = 1` is in the global frame.
+- `lambda y: a + y` is in the global frame. so `a = 1`
+- `lambda y: a * g(y)` frame is in f. so `a = 2`
+- when executing `f(lambda y: a + y)(a)` finally execute `lambda y: a * g(y)`, a = 2,y=2. and in g(y),a = 1, y = 1
+- So the final caculation result is 4
