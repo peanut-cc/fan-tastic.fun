@@ -8,7 +8,8 @@ draft: false
 
 ## 2023年读书记录
 
-| name  | author  | sate
-| ---   |  ---    | ---
-|  《可能性的艺术》    | 刘瑜        | ing
-|  《数据密集型应用系统设计》    | Martin Kleppmann        | ing
+| name  | author  | sate | date |
+| ---   |  ---    | ---  | ---
+|  《可能性的艺术》    | 刘瑜        | done    | 2023-01-09
+|  《数据密集型应用系统设计》    | Martin Kleppmann        | ing |
+|  《必有人重写爱情》    | 北岛      | ing |
