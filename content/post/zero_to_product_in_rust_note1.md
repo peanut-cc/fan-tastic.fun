@@ -48,6 +48,16 @@ rustflags = ["-C", "link-arg=-fuse-ld=/usr/local/bin/zld"]
 
 ```
 
+### cargo 子命令工具推荐
+
+Rust 项目的依赖管理是可以通过cargo子命令方便的管理的, 安装cargo-edit 工具`cargo install cargo-edit`
+如添加依赖可以使用`cargo add actix-web`, 或者使用 `cargo add actix-web --vers 4.0.0` 指定版本，执行之后可以在项目的Cargo.toml文件中看到
+
+```toml
+[dependencies]
+actix-web = "4.3.0"
+```
+
 ## 关于持续集成
 
 在项目开发中比较好的做法是，在基于main分支的开发中，我们应该能够在任何时间节点部署我们的main分支。
