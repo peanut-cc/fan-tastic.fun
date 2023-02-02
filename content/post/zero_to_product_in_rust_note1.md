@@ -1,7 +1,9 @@
 ---
-title: "《Rust in Production》笔记(一) ---- 开发前期准备"
+title: "《Zero To Production In Rust》笔记(一) ---- 开发前期准备"
 date: 2023-02-01T14:29:37+08:00
-draft: true
+draft: false
+tags: ["rust"]
+categories: ["《Zero To Production In Rust》笔记"]
 ---
 
 这本书和之前看过的一些书籍不一样，在最开始的部分，从开发流程到常用Rust小工具的说明都写的非常清楚，包括后面的CI持续集成。是可以通过书中的完整项目好好学一下Rust web的开发流程。
