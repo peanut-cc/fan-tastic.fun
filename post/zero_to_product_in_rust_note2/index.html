@@ -1,0 +1,622 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>《Zero To Production In Rust》笔记(二) - fan-tastic.fun</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="fan-tastic.fun"><meta name=description content="作者在关于这个项目的编写过程应该是目前看到的比较完善的，不管是继承测试，还是写代码的方式，作者最开始说： Make a change Compile the application Run tests Run the application 这个过程贯穿项"><meta name=keywords content="fan-tastic,Rust,dev,Rust,fan-tasitc.fun,fun"><meta name=generator content="Hugo 0.104.0 with theme even"><link rel=canonical href=https://www.fan-tastic.fun/post/zero_to_product_in_rust_note2/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="《Zero To Production In Rust》笔记(二) "><meta property="og:description" content="作者在关于这个项目的编写过程应该是目前看到的比较完善的，不管是继承测试，还是写代码的方式，作者最开始说： Make a change Compile the application Run tests Run the application 这个过程贯穿项"><meta property="og:type" content="article"><meta property="og:url" content="https://www.fan-tastic.fun/post/zero_to_product_in_rust_note2/"><meta property="article:section" content="post"><meta property="article:published_time" content="2023-02-01T20:00:36+08:00"><meta property="article:modified_time" content="2023-02-13T22:00:24+08:00"><meta itemprop=name content="《Zero To Production In Rust》笔记(二) "><meta itemprop=description content="作者在关于这个项目的编写过程应该是目前看到的比较完善的，不管是继承测试，还是写代码的方式，作者最开始说： Make a change Compile the application Run tests Run the application 这个过程贯穿项"><meta itemprop=datePublished content="2023-02-01T20:00:36+08:00"><meta itemprop=dateModified content="2023-02-13T22:00:24+08:00"><meta itemprop=wordCount content="2648"><meta itemprop=keywords content="rust,"><meta name=twitter:card content="summary"><meta name=twitter:title content="《Zero To Production In Rust》笔记(二) "><meta name=twitter:description content="作者在关于这个项目的编写过程应该是目前看到的比较完善的，不管是继承测试，还是写代码的方式，作者最开始说： Make a change Compile the application Run tests Run the application 这个过程贯穿项"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
+<script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>fan-tastic</a></div><div class=mobile-navbar-icon><span></span>
+<span></span>
+<span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/><li class=mobile-menu-item>Home</li></a><a href=/post/><li class=mobile-menu-item>Archives</li></a><a href=/tags/><li class=mobile-menu-item>Tags</li></a><a href=/categories/><li class=mobile-menu-item>Categories</li></a><a href=/about/><li class=mobile-menu-item>About</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/ class=logo>fan-tastic</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/>Home</a></li><li class=menu-item><a class=menu-item-link href=/post/>Archives</a></li><li class=menu-item><a class=menu-item-link href=/tags/>Tags</a></li><li class=menu-item><a class=menu-item-link href=/categories/>Categories</a></li><li class=menu-item><a class=menu-item-link href=/about/>About</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>《Zero To Production In Rust》笔记(二)</h1><div class=post-meta><span class=post-time>2023-02-01</span><div class=post-category><a href=/categories/zero-to-production-in-rust%E7%AC%94%E8%AE%B0/>《Zero To Production In Rust》笔记</a></div><span class=more-meta>2648 words</span>
+<span class=more-meta>6 mins read</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>Contents</h2><div class=post-toc-content><nav id=TableOfContents><ul><li><ul><li><a href=#关于-actix>关于 Actix</a><ul><li><a href=#一个简单的-web-server>一个简单的 web server</a></li><li><a href=#actix-application-state>Actix Application State</a></li><li><a href=#actix-url-encoded-forms>actix URL-Encoded Forms</a></li><li><a href=#listen-1270010>listen 127.0.0.1:0</a></li><li><a href=#关于日志>关于日志</a></li></ul></li><li><a href=#关于测试>关于测试</a></li><li><a href=#关于configtoml-中的-lib-和-bin>关于Config.toml 中的 lib 和 bin</a></li><li><a href=#本地开发docker相关>本地开发Docker相关</a></li><li><a href=#关于-rust-config-库>关于 rust config 库</a></li><li><a href=#关于测试隔离>关于测试隔离</a></li></ul></li></ul></nav></div></div><div class=post-content><p>作者在关于这个项目的编写过程应该是目前看到的比较完善的，不管是继承测试，还是写代码的方式，作者最开始说：</p><ul><li>Make a change</li><li>Compile the application</li><li>Run tests</li><li>Run the application</li></ul><p>这个过程贯穿项目的整个过程，也是非常值得自己学习的地方。也让自己看到了测试对于项目的持续开发的重要性。</p><h2 id=关于-actix>关于 Actix</h2><h3 id=一个简单的-web-server>一个简单的 web server</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>actix_web</span>::<span class=p>{</span><span class=n>web</span><span class=p>,</span><span class=w> </span><span class=n>App</span><span class=p>,</span><span class=w> </span><span class=n>HttpRequest</span><span class=p>,</span><span class=w> </span><span class=n>HttpServer</span><span class=p>,</span><span class=w> </span><span class=n>Responder</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>async</span><span class=w> </span><span class=k>fn</span> <span class=nf>greet</span><span class=p>(</span><span class=n>req</span>: <span class=nc>HttpRequest</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>impl</span><span class=w> </span><span class=n>Responder</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>req</span><span class=p>.</span><span class=n>match_info</span><span class=p>().</span><span class=n>get</span><span class=p>(</span><span class=s>&#34;name&#34;</span><span class=p>).</span><span class=n>unwrap_or</span><span class=p>(</span><span class=s>&#34;World&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>format!</span><span class=p>(</span><span class=s>&#34;Hello {}!&#34;</span><span class=p>,</span><span class=w> </span><span class=o>&amp;</span><span class=n>name</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cp>#[tokio::main]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>async</span><span class=w> </span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nc>std</span>::<span class=n>io</span>::<span class=nb>Result</span><span class=o>&lt;</span><span class=p>()</span><span class=o>&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>HttpServer</span>::<span class=n>new</span><span class=p>(</span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>App</span>::<span class=n>new</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>route</span><span class=p>(</span><span class=s>&#34;/&#34;</span><span class=p>,</span><span class=w> </span><span class=n>web</span>::<span class=n>get</span><span class=p>().</span><span class=n>to</span><span class=p>(</span><span class=n>greet</span><span class=p>))</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>route</span><span class=p>(</span><span class=s>&#34;/{name}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>web</span>::<span class=n>get</span><span class=p>().</span><span class=n>to</span><span class=p>(</span><span class=n>greet</span><span class=p>))</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>})</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>.</span><span class=n>bind</span><span class=p>(</span><span class=s>&#34;127.0.0.1:8000&#34;</span><span class=p>)</span><span class=o>?</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>.</span><span class=n>run</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>.</span><span class=k>await</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>这里推荐一个工具 <code>cargo-expand</code> 可以将代码中宏的部分进行展开，上述代码我们执行<code>cargo expand</code>，可以看到如下结果：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=cp>#![feature(prelude_import)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cp>#[prelude_import]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>prelude</span>::<span class=n>rust_2021</span>::<span class=o>*</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cp>#[macro_use]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>extern</span><span class=w> </span><span class=k>crate</span><span class=w> </span><span class=n>std</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>actix_web</span>::<span class=p>{</span><span class=n>web</span><span class=p>,</span><span class=w> </span><span class=n>App</span><span class=p>,</span><span class=w> </span><span class=n>HttpRequest</span><span class=p>,</span><span class=w> </span><span class=n>HttpServer</span><span class=p>,</span><span class=w> </span><span class=n>Responder</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>async</span><span class=w> </span><span class=k>fn</span> <span class=nf>greet</span><span class=p>(</span><span class=n>req</span>: <span class=nc>HttpRequest</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>impl</span><span class=w> </span><span class=n>Responder</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>req</span><span class=p>.</span><span class=n>match_info</span><span class=p>().</span><span class=n>get</span><span class=p>(</span><span class=s>&#34;name&#34;</span><span class=p>).</span><span class=n>unwrap_or</span><span class=p>(</span><span class=s>&#34;World&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>res</span><span class=w> </span><span class=o>=</span><span class=w> </span>::<span class=n>alloc</span>::<span class=n>fmt</span>::<span class=n>format</span><span class=p>(</span><span class=fm>format_args!</span><span class=p>(</span><span class=s>&#34;Hello {0}!&#34;</span><span class=p>,</span><span class=w> </span><span class=o>&amp;</span><span class=w> </span><span class=n>name</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>res</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nc>std</span>::<span class=n>io</span>::<span class=nb>Result</span><span class=o>&lt;</span><span class=p>()</span><span class=o>&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>body</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>HttpServer</span>::<span class=n>new</span><span class=p>(</span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>App</span>::<span class=n>new</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=p>.</span><span class=n>route</span><span class=p>(</span><span class=s>&#34;/&#34;</span><span class=p>,</span><span class=w> </span><span class=n>web</span>::<span class=n>get</span><span class=p>().</span><span class=n>to</span><span class=p>(</span><span class=n>greet</span><span class=p>))</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=p>.</span><span class=n>route</span><span class=p>(</span><span class=s>&#34;/{name}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>web</span>::<span class=n>get</span><span class=p>().</span><span class=n>to</span><span class=p>(</span><span class=n>greet</span><span class=p>))</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>})</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>bind</span><span class=p>(</span><span class=s>&#34;127.0.0.1:8000&#34;</span><span class=p>)</span><span class=o>?</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>run</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=k>await</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=cp>#[allow(clippy::expect_used, clippy::diverging_sub_expression)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>return</span><span class=w> </span><span class=n>tokio</span>::<span class=n>runtime</span>::<span class=n>Builder</span>::<span class=n>new_multi_thread</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>enable_all</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>build</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed building the Runtime&#34;</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=n>body</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>从展开的代码看到 main 函数是同步的，不过最后又这么一段代码：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>return</span><span class=w> </span><span class=n>tokio</span>::<span class=n>runtime</span>::<span class=n>Builder</span>::<span class=n>new_multi_thread</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>.</span><span class=n>enable_all</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>.</span><span class=n>build</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>.</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed building the Runtime&#34;</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=n>body</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>启动了一个 tokio 的异步运行时，使用它来驱动 HttpServer::run，其实换就是<code>#[tokio::main]</code> 是给我们提供了一种方便些异步代码的方式。</p><h3 id=actix-application-state>Actix Application State</h3><blockquote><p>actix-web gives us the possibility to attach to the application other pieces of data that are not related to the lifecycle of a single incoming request - the so-called application state</p></blockquote><p><code>Application State</code> 一个最常用的地方应该就是数据连接了。下面是代码例子：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>pub</span><span class=w> </span><span class=k>fn</span> <span class=nf>run</span><span class=p>(</span><span class=n>listener</span>: <span class=nc>TcpListener</span><span class=p>,</span><span class=w> </span><span class=n>db_pool</span>: <span class=nc>PgPool</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nb>Result</span><span class=o>&lt;</span><span class=n>Server</span><span class=p>,</span><span class=w> </span><span class=n>std</span>::<span class=n>io</span>::<span class=n>Error</span><span class=o>&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>db_pool</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>web</span>::<span class=n>Data</span>::<span class=n>new</span><span class=p>(</span><span class=n>db_pool</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>server</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>HttpServer</span>::<span class=n>new</span><span class=p>(</span><span class=k>move</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>App</span>::<span class=n>new</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>wrap</span><span class=p>(</span><span class=n>TracingLogger</span>::<span class=n>default</span><span class=p>())</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>route</span><span class=p>(</span><span class=s>&#34;/health_check&#34;</span><span class=p>,</span><span class=w> </span><span class=n>web</span>::<span class=n>get</span><span class=p>().</span><span class=n>to</span><span class=p>(</span><span class=n>health_check</span><span class=p>))</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>route</span><span class=p>(</span><span class=s>&#34;/subscriptions&#34;</span><span class=p>,</span><span class=w> </span><span class=n>web</span>::<span class=n>post</span><span class=p>().</span><span class=n>to</span><span class=p>(</span><span class=n>subscribe</span><span class=p>))</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>app_data</span><span class=p>(</span><span class=n>db_pool</span><span class=p>.</span><span class=n>clone</span><span class=p>())</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>})</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>.</span><span class=n>listen</span><span class=p>(</span><span class=n>listener</span><span class=p>)</span><span class=o>?</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>.</span><span class=n>run</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nb>Ok</span><span class=p>(</span><span class=n>server</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=actix-url-encoded-forms>actix URL-Encoded Forms</h3><blockquote><p>&ldquo;A URL-encoded form body can be extracted to a struct, much like <code>Json&lt;T></code>. This type must implement <code>serde::Deserialize</code>.&rdquo;</p></blockquote><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=cp>#[derive(serde::Deserialize)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>pub</span><span class=w> </span><span class=k>struct</span> <span class=nc>FormData</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>email</span>: <span class=nb>String</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>name</span>: <span class=nb>String</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=sd>/// extract form data using serde
+</span></span></span><span class=line><span class=cl><span class=sd>/// this handler gets called only if the content type is *x-www-form-urlencoded*
+</span></span></span><span class=line><span class=cl><span class=sd>/// and the content of the request could be deserialized to a `FormData` struct
+</span></span></span><span class=line><span class=cl><span class=sd></span><span class=k>pub</span><span class=w> </span><span class=k>async</span><span class=w> </span><span class=k>fn</span> <span class=nf>subscribe</span><span class=p>(</span><span class=n>form</span>: <span class=nc>web</span>::<span class=n>Form</span><span class=o>&lt;</span><span class=n>FormData</span><span class=o>&gt;</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>HttpResponse</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=listen-1270010>listen 127.0.0.1:0</h3><p>在测试代码中使用确实一个比较不错的方式，不用再总是担心要用的端口已经被占用了。</p><blockquote><p>Port 0 is special-cased at the OS level: trying to bind port 0 will trigger an OS scan for an available port which will then be bound to the application</p></blockquote><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=kd>let</span><span class=w> </span><span class=n>listener</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>TcpListener</span>::<span class=n>bind</span><span class=p>(</span><span class=s>&#34;127.0.0.1:0&#34;</span><span class=p>).</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed to bind random port&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>let</span><span class=w> </span><span class=n>port</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>listener</span><span class=p>.</span><span class=n>local_addr</span><span class=p>().</span><span class=n>unwrap</span><span class=p>().</span><span class=n>port</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>let</span><span class=w> </span><span class=n>address</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=fm>format!</span><span class=p>(</span><span class=s>&#34;http://127.0.0.1:{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>port</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=关于日志>关于日志</h3><h2 id=关于测试>关于测试</h2><p>在Rust 中通常把测试分为两种：单元测试和集成测试</p><p>单元测试目标是测试某段代码（一般是函数），验证该单元是否能按照预期工作。在Rust中，单元测试的代码通常是和待测试的代码放在同一个文件中。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>pub</span><span class=w> </span><span class=k>fn</span> <span class=nf>add_two</span><span class=p>(</span><span class=n>a</span>: <span class=kt>i32</span><span class=p>)</span><span class=w> </span>-&gt; <span class=kt>i32</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>a</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=mi>2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cp>#[cfg(test)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>mod</span> <span class=nn>tests</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>use</span><span class=w> </span><span class=k>super</span>::<span class=o>*</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=cp>#[test]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>it_works</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>assert_eq!</span><span class=p>(</span><span class=n>add_two</span><span class=p>(</span><span class=mi>2</span><span class=p>),</span><span class=w> </span><span class=mi>4</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>集成测试的代码是在一个单独的目录下，只能通过调用通过 <code>pub</code> 定义的 <code>API</code>。集成测试通常是对某一个功能或者接口进行测试。在Rust 中，通常是在根目录下建立一个 <code>tests</code> 目录，用于存放继承测试的代码。注意：<code>tests</code> 目录下的每个文件都是一个单独的包。</p><p>对于目前的这个程序来说，可以通过集成测试来测试对外提供的功能，在后续实现中，也可以根据需要对需要测试的函数添加单元测试。
+作者在这本书中非常的注重测试，这是自己需要改进的地方。</p><h2 id=关于configtoml-中的-lib-和-bin>关于Config.toml 中的 lib 和 bin</h2><p>作者在config.toml 中添加了如下配置：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-toml data-lang=toml><span class=line><span class=cl><span class=p>[</span><span class=nx>lib</span><span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=nx>path</span> <span class=p>=</span> <span class=s2>&#34;src/lib.rs&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=p>[[</span><span class=nx>bin</span><span class=p>]]</span>
+</span></span><span class=line><span class=cl><span class=nx>path</span> <span class=p>=</span> <span class=s2>&#34;src/main.rs&#34;</span>
+</span></span><span class=line><span class=cl><span class=nx>name</span> <span class=p>=</span> <span class=s2>&#34;zero2prod&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><p>先看一下一个典型的 Package 目录结构为：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>.
+</span></span><span class=line><span class=cl>├── Cargo.lock
+</span></span><span class=line><span class=cl>├── Cargo.toml
+</span></span><span class=line><span class=cl>├── src/
+</span></span><span class=line><span class=cl>│   ├── lib.rs
+</span></span><span class=line><span class=cl>│   ├── main.rs
+</span></span><span class=line><span class=cl>│   └── bin/
+</span></span><span class=line><span class=cl>│       ├── named-executable.rs
+</span></span><span class=line><span class=cl>│       ├── another-executable.rs
+</span></span><span class=line><span class=cl>│       └── multi-file-executable/
+</span></span><span class=line><span class=cl>│           ├── main.rs
+</span></span><span class=line><span class=cl>│           └── some_module.rs
+</span></span><span class=line><span class=cl>├── benches/
+</span></span><span class=line><span class=cl>│   ├── large-input.rs
+</span></span><span class=line><span class=cl>│   └── multi-file-bench/
+</span></span><span class=line><span class=cl>│       ├── main.rs
+</span></span><span class=line><span class=cl>│       └── bench_module.rs
+</span></span><span class=line><span class=cl>├── examples/
+</span></span><span class=line><span class=cl>│   ├── simple.rs
+</span></span><span class=line><span class=cl>│   └── multi-file-example/
+</span></span><span class=line><span class=cl>│       ├── main.rs
+</span></span><span class=line><span class=cl>│       └── ex_module.rs
+</span></span><span class=line><span class=cl>└── tests/
+</span></span><span class=line><span class=cl>    ├── some-integration-tests.rs
+</span></span><span class=line><span class=cl>    └── multi-file-test/
+</span></span><span class=line><span class=cl>        ├── main.rs
+</span></span><span class=line><span class=cl>        └── test_module.rs
+</span></span></code></pre></td></tr></table></div></div><ul><li><code>Cargo.toml</code> 和 <code>Cargo.lock</code> 保存在 <code>package</code> 根目录下</li><li>源代码放在 <code>src</code> 目录下</li><li>默认的 <code>lib</code> 包根是 <code>src/lib.rs</code></li><li>默认的二进制包根是 <code>src/main.rs</code><ul><li>其它二进制包根放在 <code>src/bin/</code> 目录下</li></ul></li><li>基准测试 <code>benchmark</code> 放在 <code>benches</code> 目录下</li><li>示例代码放在 <code>examples</code> 目录下</li><li>集成测试代码放在 <code>tests</code> 目录下</li></ul><p>Cargo 项目中包含有一些对象，它们包含的源代码文件可以被编译成相应的包，这些对象被称之为 <code>Cargo Target</code>.
+这里重点看一下关于 <code>lib</code> 和 <code>bin</code> 的配置</p><p>库对象用于定义一个库，该库可以被其它的库或者可执行文件所链接。该对象包含的默认文件名是 <code>src/lib.rs</code>，且默认情况下，库对象的名称跟项目名是一致的
+二进制对象在被编译后可以生成可执行的文件，默认的文件名是 <code>src/main.rs</code>，二进制对象的名称跟项目名也是相同的。
+一个项目是可以拥有多个二进制文件，因此一个项目项目是可以拥有多个二进制对象。当拥有多个对象时，对象的文件默认会放在 <code>src/bin/</code> 目录下。所以配置文件中 lib 是使用 <code>[lib]</code> 而 bin 是使用 <code>[[bin]]</code>。</p><h2 id=本地开发docker相关>本地开发Docker相关</h2><p>在本地开发时快速使用脚本用于去创建一个postgres的Docker容器</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/usr/bin/env bash
+</span></span></span><span class=line><span class=cl><span class=cp></span><span class=nb>set</span> -x
+</span></span><span class=line><span class=cl><span class=nb>set</span> -eo pipefail
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>if</span> ! <span class=o>[</span> -x <span class=s2>&#34;</span><span class=k>$(</span><span class=nb>command</span> -v psql<span class=k>)</span><span class=s2>&#34;</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> &gt;<span class=p>&amp;</span><span class=m>2</span> <span class=s2>&#34;Error: psql is not installed.&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>exit</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl><span class=k>fi</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>if</span> ! <span class=o>[</span> -x <span class=s2>&#34;</span><span class=k>$(</span><span class=nb>command</span> -v sqlx<span class=k>)</span><span class=s2>&#34;</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> &gt;<span class=p>&amp;</span><span class=m>2</span> <span class=s2>&#34;Error: sqlx is not installed.&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> &gt;<span class=p>&amp;</span><span class=m>2</span> <span class=s2>&#34;Use:&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> &gt;<span class=p>&amp;</span><span class=m>2</span> <span class=s2>&#34; cargo install sqlx-cli&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> &gt;<span class=p>&amp;</span><span class=m>2</span> <span class=s2>&#34;to install it.&#34;</span> 
+</span></span><span class=line><span class=cl>    <span class=nb>exit</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl><span class=k>fi</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Check if a custom user has been set, otherwise default to &#39;postgres&#39;</span>
+</span></span><span class=line><span class=cl><span class=nv>DB_USER</span><span class=o>=</span><span class=si>${</span><span class=nv>POSTGRES_USER</span><span class=p>:=postgres</span><span class=si>}</span>
+</span></span><span class=line><span class=cl><span class=c1># Check if a custom password has been set, otherwise default to &#39;password&#39;</span>
+</span></span><span class=line><span class=cl><span class=nv>DB_PASSWORD</span><span class=o>=</span><span class=s2>&#34;</span><span class=si>${</span><span class=nv>POSTGRES_PASSWORD</span><span class=p>:=password</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1># Check if a custom database name has been set, otherwise default to &#39;newsletter&#39;</span>
+</span></span><span class=line><span class=cl><span class=nv>DB_NAME</span><span class=o>=</span><span class=s2>&#34;</span><span class=si>${</span><span class=nv>POSTGRES_DB</span><span class=p>:=newsletter</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1># Check if a custom port has been set, otherwise default to &#39;5432&#39;</span>
+</span></span><span class=line><span class=cl><span class=nv>DB_PORT</span><span class=o>=</span><span class=s2>&#34;</span><span class=si>${</span><span class=nv>POSTGRES_PORT</span><span class=p>:=5432</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Launch postgres using Docker</span>
+</span></span><span class=line><span class=cl>docker run <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    -e <span class=nv>POSTGRES_USER</span><span class=o>=</span><span class=si>${</span><span class=nv>DB_USER</span><span class=si>}</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    -e <span class=nv>POSTGRES_PASSWORD</span><span class=o>=</span><span class=si>${</span><span class=nv>DB_PASSWORD</span><span class=si>}</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    -e <span class=nv>POSTGRES_DB</span><span class=o>=</span><span class=si>${</span><span class=nv>DB_NAME</span><span class=si>}</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    -p <span class=s2>&#34;</span><span class=si>${</span><span class=nv>DB_PORT</span><span class=si>}</span><span class=s2>&#34;</span>:5432 <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    -d postgres <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    postgres -N <span class=m>1000</span>
+</span></span><span class=line><span class=cl>    <span class=c1># Încreased maximum number of connections for testing purposes</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Keep pinging Postgres until it&#39;s ready to accept commands </span>
+</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>PGPASSWORD</span><span class=o>=</span><span class=s2>&#34;</span><span class=si>${</span><span class=nv>DB_PASSWORD</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>until</span> psql -h <span class=s2>&#34;localhost&#34;</span> -U <span class=s2>&#34;</span><span class=si>${</span><span class=nv>DB_USER</span><span class=si>}</span><span class=s2>&#34;</span> -p <span class=s2>&#34;</span><span class=si>${</span><span class=nv>DB_PORT</span><span class=si>}</span><span class=s2>&#34;</span> -d <span class=s2>&#34;postgres&#34;</span> -c <span class=s1>&#39;\q&#39;</span><span class=p>;</span> <span class=k>do</span> 
+</span></span><span class=line><span class=cl>    &gt;<span class=p>&amp;</span><span class=m>2</span> <span class=nb>echo</span> <span class=s2>&#34;Postgres is still unavailable - sleeping&#34;</span> 
+</span></span><span class=line><span class=cl>    sleep <span class=m>1</span>
+</span></span><span class=line><span class=cl><span class=k>done</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>&gt;<span class=p>&amp;</span><span class=m>2</span> <span class=nb>echo</span> <span class=s2>&#34;Postgres is up and running on port </span><span class=si>${</span><span class=nv>DB_PORT</span><span class=si>}</span><span class=s2>!&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>DATABASE_URL</span><span class=o>=</span>postgres://<span class=si>${</span><span class=nv>DB_USER</span><span class=si>}</span>:<span class=si>${</span><span class=nv>DB_PASSWORD</span><span class=si>}</span>@localhost:<span class=si>${</span><span class=nv>DB_PORT</span><span class=si>}</span>/<span class=si>${</span><span class=nv>DB_NAME</span><span class=si>}</span>
+</span></span><span class=line><span class=cl>sqlx database create
+</span></span></code></pre></td></tr></table></div></div><h2 id=关于-rust-config-库>关于 rust config 库</h2><p><a href=https://docs.rs/config/latest/config/>https://docs.rs/config/latest/config/</a></p><p>这个库还是非常方便的，可以处理多种文件格式的配置文件，并支持通过环境变量获取配置，下面是代码中使用的方式</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span><span class=lnt>67
+</span><span class=lnt>68
+</span><span class=lnt>69
+</span><span class=lnt>70
+</span><span class=lnt>71
+</span><span class=lnt>72
+</span><span class=lnt>73
+</span><span class=lnt>74
+</span><span class=lnt>75
+</span><span class=lnt>76
+</span><span class=lnt>77
+</span><span class=lnt>78
+</span><span class=lnt>79
+</span><span class=lnt>80
+</span><span class=lnt>81
+</span><span class=lnt>82
+</span><span class=lnt>83
+</span><span class=lnt>84
+</span><span class=lnt>85
+</span><span class=lnt>86
+</span><span class=lnt>87
+</span><span class=lnt>88
+</span><span class=lnt>89
+</span><span class=lnt>90
+</span><span class=lnt>91
+</span><span class=lnt>92
+</span><span class=lnt>93
+</span><span class=lnt>94
+</span><span class=lnt>95
+</span><span class=lnt>96
+</span><span class=lnt>97
+</span><span class=lnt>98
+</span><span class=lnt>99
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>config</span>::<span class=n>Config</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>secrecy</span>::<span class=p>{</span><span class=n>ExposeSecret</span><span class=p>,</span><span class=w> </span><span class=n>Secret</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>serde_aux</span>::<span class=n>field_attributes</span>::<span class=n>deserialize_number_from_string</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>sqlx</span>::<span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>postgres</span>::<span class=p>{</span><span class=n>PgConnectOptions</span><span class=p>,</span><span class=w> </span><span class=n>PgSslMode</span><span class=p>},</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>ConnectOptions</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cp>#[derive(serde::Deserialize)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>pub</span><span class=w> </span><span class=k>struct</span> <span class=nc>Settings</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=n>database</span>: <span class=nc>DatabaseSettings</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=n>application</span>: <span class=nc>ApplicationSettings</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cp>#[derive(serde::Deserialize)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>pub</span><span class=w> </span><span class=k>struct</span> <span class=nc>ApplicationSettings</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=cp>#[serde(deserialize_with = </span><span class=s>&#34;deserialize_number_from_string&#34;</span><span class=cp>)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=n>port</span>: <span class=kt>u16</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=n>host</span>: <span class=nb>String</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cp>#[derive(serde::Deserialize)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>pub</span><span class=w> </span><span class=k>struct</span> <span class=nc>DatabaseSettings</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=n>username</span>: <span class=nb>String</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=n>password</span>: <span class=nc>Secret</span><span class=o>&lt;</span><span class=nb>String</span><span class=o>&gt;</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=cp>#[serde(deserialize_with = </span><span class=s>&#34;deserialize_number_from_string&#34;</span><span class=cp>)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=n>port</span>: <span class=kt>u16</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=n>host</span>: <span class=nb>String</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=n>database_name</span>: <span class=nb>String</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=n>require_ssl</span>: <span class=kt>bool</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>impl</span><span class=w> </span><span class=n>DatabaseSettings</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=k>fn</span> <span class=nf>without_db</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>PgConnectOptions</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>ssl_mode</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>if</span><span class=w> </span><span class=bp>self</span><span class=p>.</span><span class=n>require_ssl</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>PgSslMode</span>::<span class=n>Require</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w> </span><span class=k>else</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>PgSslMode</span>::<span class=n>Prefer</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>PgConnectOptions</span>::<span class=n>new</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>host</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>.</span><span class=n>host</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>username</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>.</span><span class=n>username</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>password</span><span class=p>(</span><span class=bp>self</span><span class=p>.</span><span class=n>password</span><span class=p>.</span><span class=n>expose_secret</span><span class=p>())</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>port</span><span class=p>(</span><span class=bp>self</span><span class=p>.</span><span class=n>port</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>ssl_mode</span><span class=p>(</span><span class=n>ssl_mode</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=k>fn</span> <span class=nf>with_db</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>PgConnectOptions</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>options</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=bp>self</span><span class=p>.</span><span class=n>without_db</span><span class=p>().</span><span class=n>database</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>.</span><span class=n>database_name</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>options</span><span class=p>.</span><span class=n>log_statements</span><span class=p>(</span><span class=n>tracing</span>::<span class=n>log</span>::<span class=n>LevelFilter</span>::<span class=n>Trace</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>options</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>pub</span><span class=w> </span><span class=k>fn</span> <span class=nf>get_configuration</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nb>Result</span><span class=o>&lt;</span><span class=n>Settings</span><span class=p>,</span><span class=w> </span><span class=n>config</span>::<span class=n>ConfigError</span><span class=o>&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>base_path</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>std</span>::<span class=n>env</span>::<span class=n>current_dir</span><span class=p>().</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed to determine the current directory&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>configuration_directory</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>base_path</span><span class=p>.</span><span class=n>join</span><span class=p>(</span><span class=s>&#34;configuration&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>base_source</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>config</span>::<span class=n>File</span>::<span class=n>from</span><span class=p>(</span><span class=n>configuration_directory</span><span class=p>.</span><span class=n>join</span><span class=p>(</span><span class=s>&#34;base&#34;</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>environment</span>: <span class=nc>Environment</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>std</span>::<span class=n>env</span>::<span class=n>var</span><span class=p>(</span><span class=s>&#34;APP_ENVIRONMENT&#34;</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>.</span><span class=n>unwrap_or_else</span><span class=p>(</span><span class=o>|</span><span class=n>_</span><span class=o>|</span><span class=w> </span><span class=s>&#34;local&#34;</span><span class=p>.</span><span class=n>into</span><span class=p>())</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>.</span><span class=n>try_into</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>.</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed to parse APP_ENVIRONMENT&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>environment_base</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>config</span>::<span class=n>File</span>::<span class=n>from</span><span class=p>(</span><span class=n>configuration_directory</span><span class=p>.</span><span class=n>join</span><span class=p>(</span><span class=n>environment</span><span class=p>.</span><span class=n>as_str</span><span class=p>()));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>builder</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Config</span>::<span class=n>builder</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>.</span><span class=n>add_source</span><span class=p>(</span><span class=n>base_source</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>.</span><span class=n>add_source</span><span class=p>(</span><span class=n>environment_base</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>.</span><span class=n>add_source</span><span class=p>(</span><span class=n>config</span>::<span class=n>Environment</span>::<span class=n>with_prefix</span><span class=p>(</span><span class=s>&#34;app&#34;</span><span class=p>).</span><span class=n>separator</span><span class=p>(</span><span class=s>&#34;__&#34;</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>builder</span><span class=p>.</span><span class=n>build</span><span class=p>()</span><span class=o>?</span><span class=p>.</span><span class=n>try_deserialize</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cp>#[derive(Debug)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>pub</span><span class=w> </span><span class=k>enum</span> <span class=nc>Environment</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Local</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Production</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>impl</span><span class=w> </span><span class=n>Environment</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=k>fn</span> <span class=nf>as_str</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span>-&gt; <span class=kp>&amp;</span><span class=o>&#39;</span><span class=nb>static</span> <span class=kt>str</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>match</span><span class=w> </span><span class=bp>self</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>Environment</span>::<span class=n>Local</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=s>&#34;local&#34;</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>Environment</span>::<span class=n>Production</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=s>&#34;production&#34;</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>impl</span><span class=w> </span><span class=n>TryFrom</span><span class=o>&lt;</span><span class=nb>String</span><span class=o>&gt;</span><span class=w> </span><span class=k>for</span><span class=w> </span><span class=n>Environment</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>type</span> <span class=nc>Error</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=nb>String</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>try_from</span><span class=p>(</span><span class=n>s</span>: <span class=nb>String</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nb>Result</span><span class=o>&lt;</span><span class=bp>Self</span><span class=p>,</span><span class=w> </span><span class=bp>Self</span>::<span class=n>Error</span><span class=o>&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>match</span><span class=w> </span><span class=n>s</span><span class=p>.</span><span class=n>to_lowercase</span><span class=p>().</span><span class=n>as_str</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=s>&#34;local&#34;</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=nb>Ok</span><span class=p>(</span><span class=bp>Self</span>::<span class=n>Local</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=s>&#34;production&#34;</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=nb>Ok</span><span class=p>(</span><span class=bp>Self</span>::<span class=n>Production</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>other</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=nb>Err</span><span class=p>(</span><span class=fm>format!</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=s>&#34;{other} is not a supported environment. Use either `localòr `production`.&#34;</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>)),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=关于测试隔离>关于测试隔离</h2><p>There are two techniques I am aware of to ensure test isolation when interacting with a relational database in a test:</p><ul><li>wrap the whole test in a SQL transaction and rollback at the end of it</li><li>spin up a brand-new logical database for each integration test</li></ul><p>The first is clever and will generally be faster: rolling back a SQL transaction takes less time than spinning up a new logical database. It works quite well when writing unit tests for your queries but it is tricky to pull off in an integration test like ours: our application will borrow a PgConnection from a PgPool and we have no way to “capture” that connection in a SQL transaction context.
+Which leads us to the second option: potentially slower, yet much easier to implemen</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=c1>// Lauch our application in the background
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>async</span><span class=w> </span><span class=k>fn</span> <span class=nf>spawn_app</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nc>TestApp</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Lazy</span>::<span class=n>force</span><span class=p>(</span><span class=o>&amp;</span><span class=n>TRACING</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>listener</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>TcpListener</span>::<span class=n>bind</span><span class=p>(</span><span class=s>&#34;127.0.0.1:0&#34;</span><span class=p>).</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed to bind random port&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>port</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>listener</span><span class=p>.</span><span class=n>local_addr</span><span class=p>().</span><span class=n>unwrap</span><span class=p>().</span><span class=n>port</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>address</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=fm>format!</span><span class=p>(</span><span class=s>&#34;http://127.0.0.1:{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>port</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>configuration</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>get_configuration</span><span class=p>().</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed to read configuration.&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>configuration</span><span class=p>.</span><span class=n>database</span><span class=p>.</span><span class=n>database_name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Uuid</span>::<span class=n>new_v4</span><span class=p>().</span><span class=n>to_string</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>connection_pool</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>configure_database</span><span class=p>(</span><span class=o>&amp;</span><span class=n>configuration</span><span class=p>.</span><span class=n>database</span><span class=p>).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>server</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>run</span><span class=p>(</span><span class=n>listener</span><span class=p>,</span><span class=w> </span><span class=n>connection_pool</span><span class=p>.</span><span class=n>clone</span><span class=p>()).</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed to bind address&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>_</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tokio</span>::<span class=n>spawn</span><span class=p>(</span><span class=n>server</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>TestApp</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>address</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>db_pool</span>: <span class=nc>connection_pool</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>上述代码是在tests 中 程序使用的，这种用法还是挺方便的，每次测试是时的 <code>database_name</code> 都是使用<code>uuid</code>生成.</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+<span class=item-content>fan-tastic.fun</span></p><p class=copyright-item><span class=item-title>LastMod</span>
+<span class=item-content>2023-02-13
+<a href=#ZgotmplZ/commit/3184d1ee2c42183e4859ba3098090af9ae14dfb5 title="feat: 更新《Zero To Production In Rust》笔记(二)">(3184d1e)</a></span></p><p class=copyright-item><span class=item-title>License</span>
+<span class=item-content><a rel="license noopener" href=https://creativecommons.org/licenses/by/4.0/ target=_blank>知识共享署名4.0</a></span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/rust/>rust</a></div><nav class=post-nav><a class=next href=/post/zero_to_product_in_rust_note1/><span class="next-text nav-default">《Zero To Production In Rust》笔记(一) ---- 开发前期准备</span>
+<span class="next-text nav-mobile">Next</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div><div id=gitalk-container></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css crossorigin=anonymous><script src=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js crossorigin=anonymous></script>
+<script type=text/javascript>var gitalk=new Gitalk({id:"2023-02-01 20:00:36 \u002b0800 \u002b0800",title:"《Zero To Production In Rust》笔记(二) ",clientID:"8e56c7d6ce34f788ca8f",clientSecret:"d8012ab38028c2fffa457e0449f958da07dc84e5",repo:"fan-tastic.fun",owner:"peanut-cc",admin:["peanut-cc"],body:decodeURI(location.href)});gitalk.render("gitalk-container")</script><noscript>Please enable JavaScript to view the <a href=https://github.com/gitalk/gitalk>comments powered by gitalk.</a></noscript></div></main><footer id=footer class=footer><div class=social-links><a href=https://github.com/peanut-cc class="iconfont icon-github" title=github></a>
+<a href=https://www.fan-tastic.fun/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>Powered by <a class=hexo-link href=https://gohugo.io>Hugo</a></span>
+<span class=division>|</span>
+<span class=theme-info>Theme -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2022 -
+2023<span class=heart><i class="iconfont icon-heart"></i></span><span>by fan-tastic.fun</span>
+<span><a class=theme-link href=https://beian.miit.gov.cn/>豫ICP备2022023372号-1</a></span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script>
+<script type=text/javascript src=/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js></script></body></html>
