@@ -1,8 +1,8 @@
-<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>《Zero To Production In Rust》笔记(二) - fan-tastic.fun</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="fan-tastic.fun"><meta name=description content="作者在关于这个项目的编写过程应该是目前看到的比较完善的，不管是继承测试，还是写代码的方式，作者最开始说： Make a change Compile the application Run tests Run the application 这个过程贯穿项"><meta name=keywords content="fan-tastic,Rust,dev,Rust,fan-tasitc.fun,fun"><meta name=generator content="Hugo 0.104.0 with theme even"><link rel=canonical href=https://www.fan-tastic.fun/post/zero_to_product_in_rust_note2/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="《Zero To Production In Rust》笔记(二) "><meta property="og:description" content="作者在关于这个项目的编写过程应该是目前看到的比较完善的，不管是继承测试，还是写代码的方式，作者最开始说： Make a change Compile the application Run tests Run the application 这个过程贯穿项"><meta property="og:type" content="article"><meta property="og:url" content="https://www.fan-tastic.fun/post/zero_to_product_in_rust_note2/"><meta property="article:section" content="post"><meta property="article:published_time" content="2023-02-01T20:00:36+08:00"><meta property="article:modified_time" content="2023-02-13T22:00:24+08:00"><meta itemprop=name content="《Zero To Production In Rust》笔记(二) "><meta itemprop=description content="作者在关于这个项目的编写过程应该是目前看到的比较完善的，不管是继承测试，还是写代码的方式，作者最开始说： Make a change Compile the application Run tests Run the application 这个过程贯穿项"><meta itemprop=datePublished content="2023-02-01T20:00:36+08:00"><meta itemprop=dateModified content="2023-02-13T22:00:24+08:00"><meta itemprop=wordCount content="2648"><meta itemprop=keywords content="rust,"><meta name=twitter:card content="summary"><meta name=twitter:title content="《Zero To Production In Rust》笔记(二) "><meta name=twitter:description content="作者在关于这个项目的编写过程应该是目前看到的比较完善的，不管是继承测试，还是写代码的方式，作者最开始说： Make a change Compile the application Run tests Run the application 这个过程贯穿项"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>《Zero To Production In Rust》笔记(二) - fan-tastic.fun</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="fan-tastic.fun"><meta name=description content="作者在关于这个项目的编写过程应该是目前看到的比较完善的，不管是集成测试，还是写代码的方式，就像作者最开始说： Make a change Compile the application Run tests Run the application 这个过程贯"><meta name=keywords content="fan-tastic,Rust,dev,Rust,fan-tasitc.fun,fun"><meta name=generator content="Hugo 0.104.0 with theme even"><link rel=canonical href=https://www.fan-tastic.fun/post/zero_to_product_in_rust_note2/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="《Zero To Production In Rust》笔记(二) "><meta property="og:description" content="作者在关于这个项目的编写过程应该是目前看到的比较完善的，不管是集成测试，还是写代码的方式，就像作者最开始说： Make a change Compile the application Run tests Run the application 这个过程贯"><meta property="og:type" content="article"><meta property="og:url" content="https://www.fan-tastic.fun/post/zero_to_product_in_rust_note2/"><meta property="article:section" content="post"><meta property="article:published_time" content="2023-02-01T20:00:36+08:00"><meta property="article:modified_time" content="2023-02-14T11:34:17+08:00"><meta itemprop=name content="《Zero To Production In Rust》笔记(二) "><meta itemprop=description content="作者在关于这个项目的编写过程应该是目前看到的比较完善的，不管是集成测试，还是写代码的方式，就像作者最开始说： Make a change Compile the application Run tests Run the application 这个过程贯"><meta itemprop=datePublished content="2023-02-01T20:00:36+08:00"><meta itemprop=dateModified content="2023-02-14T11:34:17+08:00"><meta itemprop=wordCount content="3375"><meta itemprop=keywords content="rust,"><meta name=twitter:card content="summary"><meta name=twitter:title content="《Zero To Production In Rust》笔记(二) "><meta name=twitter:description content="作者在关于这个项目的编写过程应该是目前看到的比较完善的，不管是集成测试，还是写代码的方式，就像作者最开始说： Make a change Compile the application Run tests Run the application 这个过程贯"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
 <script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>fan-tastic</a></div><div class=mobile-navbar-icon><span></span>
 <span></span>
-<span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/><li class=mobile-menu-item>Home</li></a><a href=/post/><li class=mobile-menu-item>Archives</li></a><a href=/tags/><li class=mobile-menu-item>Tags</li></a><a href=/categories/><li class=mobile-menu-item>Categories</li></a><a href=/about/><li class=mobile-menu-item>About</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/ class=logo>fan-tastic</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/>Home</a></li><li class=menu-item><a class=menu-item-link href=/post/>Archives</a></li><li class=menu-item><a class=menu-item-link href=/tags/>Tags</a></li><li class=menu-item><a class=menu-item-link href=/categories/>Categories</a></li><li class=menu-item><a class=menu-item-link href=/about/>About</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>《Zero To Production In Rust》笔记(二)</h1><div class=post-meta><span class=post-time>2023-02-01</span><div class=post-category><a href=/categories/zero-to-production-in-rust%E7%AC%94%E8%AE%B0/>《Zero To Production In Rust》笔记</a></div><span class=more-meta>2648 words</span>
-<span class=more-meta>6 mins read</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>Contents</h2><div class=post-toc-content><nav id=TableOfContents><ul><li><ul><li><a href=#关于-actix>关于 Actix</a><ul><li><a href=#一个简单的-web-server>一个简单的 web server</a></li><li><a href=#actix-application-state>Actix Application State</a></li><li><a href=#actix-url-encoded-forms>actix URL-Encoded Forms</a></li><li><a href=#listen-1270010>listen 127.0.0.1:0</a></li><li><a href=#关于日志>关于日志</a></li></ul></li><li><a href=#关于测试>关于测试</a></li><li><a href=#关于configtoml-中的-lib-和-bin>关于Config.toml 中的 lib 和 bin</a></li><li><a href=#本地开发docker相关>本地开发Docker相关</a></li><li><a href=#关于-rust-config-库>关于 rust config 库</a></li><li><a href=#关于测试隔离>关于测试隔离</a></li></ul></li></ul></nav></div></div><div class=post-content><p>作者在关于这个项目的编写过程应该是目前看到的比较完善的，不管是继承测试，还是写代码的方式，作者最开始说：</p><ul><li>Make a change</li><li>Compile the application</li><li>Run tests</li><li>Run the application</li></ul><p>这个过程贯穿项目的整个过程，也是非常值得自己学习的地方。也让自己看到了测试对于项目的持续开发的重要性。</p><h2 id=关于-actix>关于 Actix</h2><h3 id=一个简单的-web-server>一个简单的 web server</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+<span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/><li class=mobile-menu-item>Home</li></a><a href=/post/><li class=mobile-menu-item>Archives</li></a><a href=/tags/><li class=mobile-menu-item>Tags</li></a><a href=/categories/><li class=mobile-menu-item>Categories</li></a><a href=/about/><li class=mobile-menu-item>About</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/ class=logo>fan-tastic</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/>Home</a></li><li class=menu-item><a class=menu-item-link href=/post/>Archives</a></li><li class=menu-item><a class=menu-item-link href=/tags/>Tags</a></li><li class=menu-item><a class=menu-item-link href=/categories/>Categories</a></li><li class=menu-item><a class=menu-item-link href=/about/>About</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>《Zero To Production In Rust》笔记(二)</h1><div class=post-meta><span class=post-time>2023-02-01</span><div class=post-category><a href=/categories/zero-to-production-in-rust%E7%AC%94%E8%AE%B0/>《Zero To Production In Rust》笔记</a></div><span class=more-meta>3375 words</span>
+<span class=more-meta>7 mins read</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>Contents</h2><div class=post-toc-content><nav id=TableOfContents><ul><li><ul><li><a href=#关于-actix>关于 Actix</a><ul><li><a href=#一个简单的-web-server>一个简单的 web server</a></li><li><a href=#actix-application-state>Actix Application State</a></li><li><a href=#actix-url-encoded-forms>actix URL-Encoded Forms</a></li><li><a href=#listen-1270010>listen 127.0.0.1:0</a></li><li><a href=#关于日志>关于日志</a></li></ul></li><li><a href=#关于测试>关于测试</a><ul><li><a href=#本地开发docker相关>本地开发Docker相关</a></li><li><a href=#关于测试隔离>关于测试隔离</a></li><li><a href=#log-在测试中的使用>log 在测试中的使用</a></li></ul></li><li><a href=#关于configtoml-中的-lib-和-bin>关于Config.toml 中的 lib 和 bin</a></li><li><a href=#关于-rust-config-库>关于 rust config 库</a></li></ul></li></ul></nav></div></div><div class=post-content><p>作者在关于这个项目的编写过程应该是目前看到的比较完善的，不管是集成测试，还是写代码的方式，就像作者最开始说：</p><ul><li>Make a change</li><li>Compile the application</li><li>Run tests</li><li>Run the application</li></ul><p>这个过程贯穿项目的整个过程，也是非常值得自己学习的地方。也让自己看到了测试对于项目的持续开发的重要性。</p><h2 id=关于-actix>关于 Actix</h2><h3 id=一个简单的-web-server>一个简单的 web server</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
 </span><span class=lnt> 2
 </span><span class=lnt> 3
 </span><span class=lnt> 4
@@ -172,7 +172,104 @@
 </span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=kd>let</span><span class=w> </span><span class=n>listener</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>TcpListener</span>::<span class=n>bind</span><span class=p>(</span><span class=s>&#34;127.0.0.1:0&#34;</span><span class=p>).</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed to bind random port&#34;</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>let</span><span class=w> </span><span class=n>port</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>listener</span><span class=p>.</span><span class=n>local_addr</span><span class=p>().</span><span class=n>unwrap</span><span class=p>().</span><span class=n>port</span><span class=p>();</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>let</span><span class=w> </span><span class=n>address</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=fm>format!</span><span class=p>(</span><span class=s>&#34;http://127.0.0.1:{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>port</span><span class=p>);</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h3 id=关于日志>关于日志</h3><h2 id=关于测试>关于测试</h2><p>在Rust 中通常把测试分为两种：单元测试和集成测试</p><p>单元测试目标是测试某段代码（一般是函数），验证该单元是否能按照预期工作。在Rust中，单元测试的代码通常是和待测试的代码放在同一个文件中。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=关于日志>关于日志</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-toml data-lang=toml><span class=line><span class=cl><span class=nx>tracing</span> <span class=p>=</span> <span class=p>{</span> <span class=nx>version</span> <span class=p>=</span> <span class=s2>&#34;0.1&#34;</span><span class=p>,</span> <span class=nx>features</span> <span class=p>=</span> <span class=p>[</span><span class=s2>&#34;log&#34;</span><span class=p>]</span> <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=nx>tracing-subscriber</span> <span class=p>=</span> <span class=p>{</span> <span class=nx>version</span> <span class=p>=</span> <span class=s2>&#34;0.3&#34;</span><span class=p>,</span> <span class=nx>features</span> <span class=p>=</span> <span class=p>[</span><span class=s2>&#34;registry&#34;</span><span class=p>,</span> <span class=s2>&#34;env-filter&#34;</span><span class=p>]</span> <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=nx>tracing-bunyan-formatter</span> <span class=p>=</span> <span class=s2>&#34;0.3&#34;</span>
+</span></span><span class=line><span class=cl><span class=nx>tracing-log</span> <span class=p>=</span> <span class=s2>&#34;0.1&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><p>关于日志的处理，通过这几个库配合使用的。</p><p>tracing</p><blockquote><p>tracing expands upon logging-style diagnostics by allowing libraries and applications to record structured events with additional information about temporality and causality — unlike a log message, a span in tracing has a beginning and end time, may be entered and exited by the flow of execution, and may exist within a nested tree of similar spans</p></blockquote><p>tracing-subscriber</p><blockquote><p>tracing is a framework for instrumenting Rust programs to collect scoped, structured, and async-aware diagnostics. The Subscriber trait represents the functionality necessary to collect this trace data. This crate contains tools for composing subscribers out of smaller units of behaviour, and batteries-included implementations of common subscriber functionality.</p><p>tracing-subscriber does much more than providing us with a few handy subscribers.It introduces another key trait into the picture, Layer.
+Layer makes it possible to build a processing pipeline for spans data: we are not forced to provide an all-encompassing subscriber that does everything we want; we can instead combine multiple smaller layers to obtain the processing pipeline we need.This substantially reduces duplication across in tracing ecosystem: people are focused on adding new capabilities by churning out new layers rather than trying to build the best-possible-batteries-included subscriber</p></blockquote><p>We’d like to put together a subscriber that has feature-parity with the good old env_logger.
+We will get there by combining three layers:</p><ul><li>tracing_subscriber::filter::EnvFilter discards spans based on their log levels and their origins, just as we did in env_logger via the RUST_LOG environment variable</li><li>tracing_bunyan_formatter::JsonStorageLayer processes spans data and stores the associated metadata in an easy-to-consume JSON format for downstream layers. It does, in particular, propagate context from parent spans to their children</li><li>tracing_bunyan_formatter::BunyanFormatterLayer builds on top of JsonStorageLayer and outputs log records in bunyan-compatible JSON format.</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>tracing</span>::<span class=p>{</span><span class=n>subscriber</span>::<span class=n>set_global_default</span><span class=p>,</span><span class=w> </span><span class=n>Subscriber</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tracing_bunyan_formatter</span>::<span class=p>{</span><span class=n>BunyanFormattingLayer</span><span class=p>,</span><span class=w> </span><span class=n>JsonStorageLayer</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tracing_log</span>::<span class=n>LogTracer</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tracing_subscriber</span>::<span class=p>{</span><span class=n>fmt</span>::<span class=n>MakeWriter</span><span class=p>,</span><span class=w> </span><span class=n>layer</span>::<span class=n>SubscriberExt</span><span class=p>,</span><span class=w> </span><span class=n>EnvFilter</span><span class=p>,</span><span class=w> </span><span class=n>Registry</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>pub</span><span class=w> </span><span class=k>fn</span> <span class=nf>get_subscriber</span><span class=o>&lt;</span><span class=n>Sink</span><span class=o>&gt;</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>name</span>: <span class=nb>String</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>env_filter</span>: <span class=nb>String</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>sink</span>: <span class=nc>Sink</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>impl</span><span class=w> </span><span class=n>Subscriber</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=nb>Send</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=nb>Sync</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>where</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Sink</span>: <span class=nc>for</span><span class=o>&lt;&#39;</span><span class=na>a</span><span class=o>&gt;</span><span class=w> </span><span class=n>MakeWriter</span><span class=o>&lt;&#39;</span><span class=na>a</span><span class=o>&gt;</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=nb>Send</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=nb>Sync</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=o>&#39;</span><span class=nb>static</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>env_filter</span><span class=w> </span><span class=o>=</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>EnvFilter</span>::<span class=n>try_from_default_env</span><span class=p>().</span><span class=n>unwrap_or_else</span><span class=p>(</span><span class=o>|</span><span class=n>_</span><span class=o>|</span><span class=w> </span><span class=n>EnvFilter</span>::<span class=n>new</span><span class=p>(</span><span class=n>env_filter</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>formatting_layer</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>BunyanFormattingLayer</span>::<span class=n>new</span><span class=p>(</span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>sink</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Registry</span>::<span class=n>default</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>.</span><span class=n>with</span><span class=p>(</span><span class=n>env_filter</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>.</span><span class=n>with</span><span class=p>(</span><span class=n>JsonStorageLayer</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>.</span><span class=n>with</span><span class=p>(</span><span class=n>formatting_layer</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>pub</span><span class=w> </span><span class=k>fn</span> <span class=nf>init_subscriber</span><span class=p>(</span><span class=n>subscriber</span>: <span class=nc>impl</span><span class=w> </span><span class=n>Subscriber</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=nb>Send</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=nb>Sync</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>LogTracer</span>::<span class=n>init</span><span class=p>().</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed to set logger&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>set_global_default</span><span class=p>(</span><span class=n>subscriber</span><span class=p>).</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed to set subscriber&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>request ID
+<code>tracing-actix-web</code> : ensure all logs for a particular request, in particular the record with the returned status code, are enriched with a request_id property</p><p>使用时也非常简单：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>tracing_actix_web</span>::<span class=n>TracingLogger</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=k>crate</span>::<span class=n>routes</span>::<span class=p>{</span><span class=n>health_check</span><span class=p>,</span><span class=w> </span><span class=n>subscribe</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>pub</span><span class=w> </span><span class=k>fn</span> <span class=nf>run</span><span class=p>(</span><span class=n>listener</span>: <span class=nc>TcpListener</span><span class=p>,</span><span class=w> </span><span class=n>db_pool</span>: <span class=nc>PgPool</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nb>Result</span><span class=o>&lt;</span><span class=n>Server</span><span class=p>,</span><span class=w> </span><span class=n>std</span>::<span class=n>io</span>::<span class=n>Error</span><span class=o>&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>db_pool</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>web</span>::<span class=n>Data</span>::<span class=n>new</span><span class=p>(</span><span class=n>db_pool</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>server</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>HttpServer</span>::<span class=n>new</span><span class=p>(</span><span class=k>move</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>App</span>::<span class=n>new</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>wrap</span><span class=p>(</span><span class=n>TracingLogger</span>::<span class=n>default</span><span class=p>())</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>route</span><span class=p>(</span><span class=s>&#34;/health_check&#34;</span><span class=p>,</span><span class=w> </span><span class=n>web</span>::<span class=n>get</span><span class=p>().</span><span class=n>to</span><span class=p>(</span><span class=n>health_check</span><span class=p>))</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>route</span><span class=p>(</span><span class=s>&#34;/subscriptions&#34;</span><span class=p>,</span><span class=w> </span><span class=n>web</span>::<span class=n>post</span><span class=p>().</span><span class=n>to</span><span class=p>(</span><span class=n>subscribe</span><span class=p>))</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>app_data</span><span class=p>(</span><span class=n>db_pool</span><span class=p>.</span><span class=n>clone</span><span class=p>())</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>})</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>.</span><span class=n>listen</span><span class=p>(</span><span class=n>listener</span><span class=p>)</span><span class=o>?</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>.</span><span class=n>run</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nb>Ok</span><span class=p>(</span><span class=n>server</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=关于测试>关于测试</h2><p>在Rust 中通常把测试分为两种：单元测试和集成测试</p><p>单元测试目标是测试某段代码（一般是函数），验证该单元是否能按照预期工作。在Rust中，单元测试的代码通常是和待测试的代码放在同一个文件中。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
 </span><span class=lnt> 2
 </span><span class=lnt> 3
 </span><span class=lnt> 4
@@ -199,7 +296,216 @@
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
 </span></span></span></code></pre></td></tr></table></div></div><p>集成测试的代码是在一个单独的目录下，只能通过调用通过 <code>pub</code> 定义的 <code>API</code>。集成测试通常是对某一个功能或者接口进行测试。在Rust 中，通常是在根目录下建立一个 <code>tests</code> 目录，用于存放继承测试的代码。注意：<code>tests</code> 目录下的每个文件都是一个单独的包。</p><p>对于目前的这个程序来说，可以通过集成测试来测试对外提供的功能，在后续实现中，也可以根据需要对需要测试的函数添加单元测试。
-作者在这本书中非常的注重测试，这是自己需要改进的地方。</p><h2 id=关于configtoml-中的-lib-和-bin>关于Config.toml 中的 lib 和 bin</h2><p>作者在config.toml 中添加了如下配置：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+作者在这本书中非常的注重测试，这是自己需要改进的地方。</p><h3 id=本地开发docker相关>本地开发Docker相关</h3><p>在本地开发时快速使用脚本用于去创建一个postgres的Docker容器</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/usr/bin/env bash
+</span></span></span><span class=line><span class=cl><span class=cp></span><span class=nb>set</span> -x
+</span></span><span class=line><span class=cl><span class=nb>set</span> -eo pipefail
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>if</span> ! <span class=o>[</span> -x <span class=s2>&#34;</span><span class=k>$(</span><span class=nb>command</span> -v psql<span class=k>)</span><span class=s2>&#34;</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> &gt;<span class=p>&amp;</span><span class=m>2</span> <span class=s2>&#34;Error: psql is not installed.&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>exit</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl><span class=k>fi</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>if</span> ! <span class=o>[</span> -x <span class=s2>&#34;</span><span class=k>$(</span><span class=nb>command</span> -v sqlx<span class=k>)</span><span class=s2>&#34;</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> &gt;<span class=p>&amp;</span><span class=m>2</span> <span class=s2>&#34;Error: sqlx is not installed.&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> &gt;<span class=p>&amp;</span><span class=m>2</span> <span class=s2>&#34;Use:&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> &gt;<span class=p>&amp;</span><span class=m>2</span> <span class=s2>&#34; cargo install sqlx-cli&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> &gt;<span class=p>&amp;</span><span class=m>2</span> <span class=s2>&#34;to install it.&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>exit</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl><span class=k>fi</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Check if a custom user has been set, otherwise default to &#39;postgres&#39;</span>
+</span></span><span class=line><span class=cl><span class=nv>DB_USER</span><span class=o>=</span><span class=si>${</span><span class=nv>POSTGRES_USER</span><span class=p>:=postgres</span><span class=si>}</span>
+</span></span><span class=line><span class=cl><span class=c1># Check if a custom password has been set, otherwise default to &#39;password&#39;</span>
+</span></span><span class=line><span class=cl><span class=nv>DB_PASSWORD</span><span class=o>=</span><span class=s2>&#34;</span><span class=si>${</span><span class=nv>POSTGRES_PASSWORD</span><span class=p>:=password</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1># Check if a custom database name has been set, otherwise default to &#39;newsletter&#39;</span>
+</span></span><span class=line><span class=cl><span class=nv>DB_NAME</span><span class=o>=</span><span class=s2>&#34;</span><span class=si>${</span><span class=nv>POSTGRES_DB</span><span class=p>:=newsletter</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1># Check if a custom port has been set, otherwise default to &#39;5432&#39;</span>
+</span></span><span class=line><span class=cl><span class=nv>DB_PORT</span><span class=o>=</span><span class=s2>&#34;</span><span class=si>${</span><span class=nv>POSTGRES_PORT</span><span class=p>:=5432</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Launch postgres using Docker</span>
+</span></span><span class=line><span class=cl>docker run <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    -e <span class=nv>POSTGRES_USER</span><span class=o>=</span><span class=si>${</span><span class=nv>DB_USER</span><span class=si>}</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    -e <span class=nv>POSTGRES_PASSWORD</span><span class=o>=</span><span class=si>${</span><span class=nv>DB_PASSWORD</span><span class=si>}</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    -e <span class=nv>POSTGRES_DB</span><span class=o>=</span><span class=si>${</span><span class=nv>DB_NAME</span><span class=si>}</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    -p <span class=s2>&#34;</span><span class=si>${</span><span class=nv>DB_PORT</span><span class=si>}</span><span class=s2>&#34;</span>:5432 <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    -d postgres <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    postgres -N <span class=m>1000</span>
+</span></span><span class=line><span class=cl>    <span class=c1># Încreased maximum number of connections for testing purposes</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Keep pinging Postgres until it&#39;s ready to accept commands </span>
+</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>PGPASSWORD</span><span class=o>=</span><span class=s2>&#34;</span><span class=si>${</span><span class=nv>DB_PASSWORD</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>until</span> psql -h <span class=s2>&#34;localhost&#34;</span> -U <span class=s2>&#34;</span><span class=si>${</span><span class=nv>DB_USER</span><span class=si>}</span><span class=s2>&#34;</span> -p <span class=s2>&#34;</span><span class=si>${</span><span class=nv>DB_PORT</span><span class=si>}</span><span class=s2>&#34;</span> -d <span class=s2>&#34;postgres&#34;</span> -c <span class=s1>&#39;\q&#39;</span><span class=p>;</span> <span class=k>do</span> 
+</span></span><span class=line><span class=cl>    &gt;<span class=p>&amp;</span><span class=m>2</span> <span class=nb>echo</span> <span class=s2>&#34;Postgres is still unavailable - sleeping&#34;</span> 
+</span></span><span class=line><span class=cl>    sleep <span class=m>1</span>
+</span></span><span class=line><span class=cl><span class=k>done</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>&gt;<span class=p>&amp;</span><span class=m>2</span> <span class=nb>echo</span> <span class=s2>&#34;Postgres is up and running on port </span><span class=si>${</span><span class=nv>DB_PORT</span><span class=si>}</span><span class=s2>!&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>DATABASE_URL</span><span class=o>=</span>postgres://<span class=si>${</span><span class=nv>DB_USER</span><span class=si>}</span>:<span class=si>${</span><span class=nv>DB_PASSWORD</span><span class=si>}</span>@localhost:<span class=si>${</span><span class=nv>DB_PORT</span><span class=si>}</span>/<span class=si>${</span><span class=nv>DB_NAME</span><span class=si>}</span>
+</span></span><span class=line><span class=cl>sqlx database create
+</span></span></code></pre></td></tr></table></div></div><h3 id=关于测试隔离>关于测试隔离</h3><p>There are two techniques I am aware of to ensure test isolation when interacting with a relational database in a test:</p><ul><li>wrap the whole test in a SQL transaction and rollback at the end of it</li><li>spin up a brand-new logical database for each integration test</li></ul><p>The first is clever and will generally be faster: rolling back a SQL transaction takes less time than spinning up a new logical database. It works quite well when writing unit tests for your queries but it is tricky to pull off in an integration test like ours: our application will borrow a PgConnection from a PgPool and we have no way to “capture” that connection in a SQL transaction context.
+Which leads us to the second option: potentially slower, yet much easier to implemen</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=c1>// Lauch our application in the background
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>async</span><span class=w> </span><span class=k>fn</span> <span class=nf>spawn_app</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nc>TestApp</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Lazy</span>::<span class=n>force</span><span class=p>(</span><span class=o>&amp;</span><span class=n>TRACING</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>listener</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>TcpListener</span>::<span class=n>bind</span><span class=p>(</span><span class=s>&#34;127.0.0.1:0&#34;</span><span class=p>).</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed to bind random port&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>port</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>listener</span><span class=p>.</span><span class=n>local_addr</span><span class=p>().</span><span class=n>unwrap</span><span class=p>().</span><span class=n>port</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>address</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=fm>format!</span><span class=p>(</span><span class=s>&#34;http://127.0.0.1:{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>port</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>configuration</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>get_configuration</span><span class=p>().</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed to read configuration.&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>configuration</span><span class=p>.</span><span class=n>database</span><span class=p>.</span><span class=n>database_name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Uuid</span>::<span class=n>new_v4</span><span class=p>().</span><span class=n>to_string</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>connection_pool</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>configure_database</span><span class=p>(</span><span class=o>&amp;</span><span class=n>configuration</span><span class=p>.</span><span class=n>database</span><span class=p>).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>server</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>run</span><span class=p>(</span><span class=n>listener</span><span class=p>,</span><span class=w> </span><span class=n>connection_pool</span><span class=p>.</span><span class=n>clone</span><span class=p>()).</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed to bind address&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>_</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tokio</span>::<span class=n>spawn</span><span class=p>(</span><span class=n>server</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>TestApp</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>address</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>db_pool</span>: <span class=nc>connection_pool</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>上述代码是在 <code>tests</code> 中 程序使用的，这种用法还是挺方便的，每次测试时 <code>database_name</code> 都是使用<code>uuid</code>生成.</p><h3 id=log-在测试中的使用>log 在测试中的使用</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>static</span><span class=w> </span><span class=n>TRACING</span>: <span class=nc>Lazy</span><span class=o>&lt;</span><span class=p>()</span><span class=o>&gt;</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Lazy</span>::<span class=n>new</span><span class=p>(</span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>default_filter_level</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s>&#34;info&#34;</span><span class=p>.</span><span class=n>to_string</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>subscribe_name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s>&#34;test&#34;</span><span class=p>.</span><span class=n>to_string</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>if</span><span class=w> </span><span class=n>std</span>::<span class=n>env</span>::<span class=n>var</span><span class=p>(</span><span class=s>&#34;TEST_LOG&#34;</span><span class=p>).</span><span class=n>is_ok</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>subscriber</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>get_subscriber</span><span class=p>(</span><span class=n>subscribe_name</span><span class=p>,</span><span class=w> </span><span class=n>default_filter_level</span><span class=p>,</span><span class=w> </span><span class=n>std</span>::<span class=n>io</span>::<span class=n>stdout</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>init_subscriber</span><span class=p>(</span><span class=n>subscriber</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w> </span><span class=k>else</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>subscriber</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>get_subscriber</span><span class=p>(</span><span class=n>subscribe_name</span><span class=p>,</span><span class=w> </span><span class=n>default_filter_level</span><span class=p>,</span><span class=w> </span><span class=n>std</span>::<span class=n>io</span>::<span class=n>sink</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>init_subscriber</span><span class=p>(</span><span class=n>subscriber</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>pub</span><span class=w> </span><span class=k>struct</span> <span class=nc>TestApp</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=n>address</span>: <span class=nb>String</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=n>db_pool</span>: <span class=nc>PgPool</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>// Lauch our application in the background
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>async</span><span class=w> </span><span class=k>fn</span> <span class=nf>spawn_app</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nc>TestApp</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Lazy</span>::<span class=n>force</span><span class=p>(</span><span class=o>&amp;</span><span class=n>TRACING</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>listener</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>TcpListener</span>::<span class=n>bind</span><span class=p>(</span><span class=s>&#34;127.0.0.1:0&#34;</span><span class=p>).</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed to bind random port&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>port</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>listener</span><span class=p>.</span><span class=n>local_addr</span><span class=p>().</span><span class=n>unwrap</span><span class=p>().</span><span class=n>port</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>address</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=fm>format!</span><span class=p>(</span><span class=s>&#34;http://127.0.0.1:{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>port</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>configuration</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>get_configuration</span><span class=p>().</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed to read configuration.&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>configuration</span><span class=p>.</span><span class=n>database</span><span class=p>.</span><span class=n>database_name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Uuid</span>::<span class=n>new_v4</span><span class=p>().</span><span class=n>to_string</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>connection_pool</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>configure_database</span><span class=p>(</span><span class=o>&amp;</span><span class=n>configuration</span><span class=p>.</span><span class=n>database</span><span class=p>).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>server</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>run</span><span class=p>(</span><span class=n>listener</span><span class=p>,</span><span class=w> </span><span class=n>connection_pool</span><span class=p>.</span><span class=n>clone</span><span class=p>()).</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed to bind address&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>_</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tokio</span>::<span class=n>spawn</span><span class=p>(</span><span class=n>server</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>TestApp</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>address</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>db_pool</span>: <span class=nc>connection_pool</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>每个测试时隔离的，在每个测试中都会调用 <code>spawn_app</code> ,这里使用了 <code>once_cell</code>保证 log 的部分只会被初始化一次。</p><h2 id=关于configtoml-中的-lib-和-bin>关于Config.toml 中的 lib 和 bin</h2><p>作者在config.toml 中添加了如下配置：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
 </span><span class=lnt>2
 </span><span class=lnt>3
 </span><span class=lnt>4
@@ -268,103 +574,7 @@
 </span></span></code></pre></td></tr></table></div></div><ul><li><code>Cargo.toml</code> 和 <code>Cargo.lock</code> 保存在 <code>package</code> 根目录下</li><li>源代码放在 <code>src</code> 目录下</li><li>默认的 <code>lib</code> 包根是 <code>src/lib.rs</code></li><li>默认的二进制包根是 <code>src/main.rs</code><ul><li>其它二进制包根放在 <code>src/bin/</code> 目录下</li></ul></li><li>基准测试 <code>benchmark</code> 放在 <code>benches</code> 目录下</li><li>示例代码放在 <code>examples</code> 目录下</li><li>集成测试代码放在 <code>tests</code> 目录下</li></ul><p>Cargo 项目中包含有一些对象，它们包含的源代码文件可以被编译成相应的包，这些对象被称之为 <code>Cargo Target</code>.
 这里重点看一下关于 <code>lib</code> 和 <code>bin</code> 的配置</p><p>库对象用于定义一个库，该库可以被其它的库或者可执行文件所链接。该对象包含的默认文件名是 <code>src/lib.rs</code>，且默认情况下，库对象的名称跟项目名是一致的
 二进制对象在被编译后可以生成可执行的文件，默认的文件名是 <code>src/main.rs</code>，二进制对象的名称跟项目名也是相同的。
-一个项目是可以拥有多个二进制文件，因此一个项目项目是可以拥有多个二进制对象。当拥有多个对象时，对象的文件默认会放在 <code>src/bin/</code> 目录下。所以配置文件中 lib 是使用 <code>[lib]</code> 而 bin 是使用 <code>[[bin]]</code>。</p><h2 id=本地开发docker相关>本地开发Docker相关</h2><p>在本地开发时快速使用脚本用于去创建一个postgres的Docker容器</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span><span class=lnt>43
-</span><span class=lnt>44
-</span><span class=lnt>45
-</span><span class=lnt>46
-</span><span class=lnt>47
-</span><span class=lnt>48
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/usr/bin/env bash
-</span></span></span><span class=line><span class=cl><span class=cp></span><span class=nb>set</span> -x
-</span></span><span class=line><span class=cl><span class=nb>set</span> -eo pipefail
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=k>if</span> ! <span class=o>[</span> -x <span class=s2>&#34;</span><span class=k>$(</span><span class=nb>command</span> -v psql<span class=k>)</span><span class=s2>&#34;</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
-</span></span><span class=line><span class=cl>    <span class=nb>echo</span> &gt;<span class=p>&amp;</span><span class=m>2</span> <span class=s2>&#34;Error: psql is not installed.&#34;</span>
-</span></span><span class=line><span class=cl>    <span class=nb>exit</span> <span class=m>1</span>
-</span></span><span class=line><span class=cl><span class=k>fi</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=k>if</span> ! <span class=o>[</span> -x <span class=s2>&#34;</span><span class=k>$(</span><span class=nb>command</span> -v sqlx<span class=k>)</span><span class=s2>&#34;</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
-</span></span><span class=line><span class=cl>    <span class=nb>echo</span> &gt;<span class=p>&amp;</span><span class=m>2</span> <span class=s2>&#34;Error: sqlx is not installed.&#34;</span>
-</span></span><span class=line><span class=cl>    <span class=nb>echo</span> &gt;<span class=p>&amp;</span><span class=m>2</span> <span class=s2>&#34;Use:&#34;</span>
-</span></span><span class=line><span class=cl>    <span class=nb>echo</span> &gt;<span class=p>&amp;</span><span class=m>2</span> <span class=s2>&#34; cargo install sqlx-cli&#34;</span>
-</span></span><span class=line><span class=cl>    <span class=nb>echo</span> &gt;<span class=p>&amp;</span><span class=m>2</span> <span class=s2>&#34;to install it.&#34;</span> 
-</span></span><span class=line><span class=cl>    <span class=nb>exit</span> <span class=m>1</span>
-</span></span><span class=line><span class=cl><span class=k>fi</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># Check if a custom user has been set, otherwise default to &#39;postgres&#39;</span>
-</span></span><span class=line><span class=cl><span class=nv>DB_USER</span><span class=o>=</span><span class=si>${</span><span class=nv>POSTGRES_USER</span><span class=p>:=postgres</span><span class=si>}</span>
-</span></span><span class=line><span class=cl><span class=c1># Check if a custom password has been set, otherwise default to &#39;password&#39;</span>
-</span></span><span class=line><span class=cl><span class=nv>DB_PASSWORD</span><span class=o>=</span><span class=s2>&#34;</span><span class=si>${</span><span class=nv>POSTGRES_PASSWORD</span><span class=p>:=password</span><span class=si>}</span><span class=s2>&#34;</span>
-</span></span><span class=line><span class=cl><span class=c1># Check if a custom database name has been set, otherwise default to &#39;newsletter&#39;</span>
-</span></span><span class=line><span class=cl><span class=nv>DB_NAME</span><span class=o>=</span><span class=s2>&#34;</span><span class=si>${</span><span class=nv>POSTGRES_DB</span><span class=p>:=newsletter</span><span class=si>}</span><span class=s2>&#34;</span>
-</span></span><span class=line><span class=cl><span class=c1># Check if a custom port has been set, otherwise default to &#39;5432&#39;</span>
-</span></span><span class=line><span class=cl><span class=nv>DB_PORT</span><span class=o>=</span><span class=s2>&#34;</span><span class=si>${</span><span class=nv>POSTGRES_PORT</span><span class=p>:=5432</span><span class=si>}</span><span class=s2>&#34;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># Launch postgres using Docker</span>
-</span></span><span class=line><span class=cl>docker run <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>    -e <span class=nv>POSTGRES_USER</span><span class=o>=</span><span class=si>${</span><span class=nv>DB_USER</span><span class=si>}</span> <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>    -e <span class=nv>POSTGRES_PASSWORD</span><span class=o>=</span><span class=si>${</span><span class=nv>DB_PASSWORD</span><span class=si>}</span> <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>    -e <span class=nv>POSTGRES_DB</span><span class=o>=</span><span class=si>${</span><span class=nv>DB_NAME</span><span class=si>}</span> <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>    -p <span class=s2>&#34;</span><span class=si>${</span><span class=nv>DB_PORT</span><span class=si>}</span><span class=s2>&#34;</span>:5432 <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>    -d postgres <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>    postgres -N <span class=m>1000</span>
-</span></span><span class=line><span class=cl>    <span class=c1># Încreased maximum number of connections for testing purposes</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># Keep pinging Postgres until it&#39;s ready to accept commands </span>
-</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>PGPASSWORD</span><span class=o>=</span><span class=s2>&#34;</span><span class=si>${</span><span class=nv>DB_PASSWORD</span><span class=si>}</span><span class=s2>&#34;</span>
-</span></span><span class=line><span class=cl><span class=k>until</span> psql -h <span class=s2>&#34;localhost&#34;</span> -U <span class=s2>&#34;</span><span class=si>${</span><span class=nv>DB_USER</span><span class=si>}</span><span class=s2>&#34;</span> -p <span class=s2>&#34;</span><span class=si>${</span><span class=nv>DB_PORT</span><span class=si>}</span><span class=s2>&#34;</span> -d <span class=s2>&#34;postgres&#34;</span> -c <span class=s1>&#39;\q&#39;</span><span class=p>;</span> <span class=k>do</span> 
-</span></span><span class=line><span class=cl>    &gt;<span class=p>&amp;</span><span class=m>2</span> <span class=nb>echo</span> <span class=s2>&#34;Postgres is still unavailable - sleeping&#34;</span> 
-</span></span><span class=line><span class=cl>    sleep <span class=m>1</span>
-</span></span><span class=line><span class=cl><span class=k>done</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>&gt;<span class=p>&amp;</span><span class=m>2</span> <span class=nb>echo</span> <span class=s2>&#34;Postgres is up and running on port </span><span class=si>${</span><span class=nv>DB_PORT</span><span class=si>}</span><span class=s2>!&#34;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>DATABASE_URL</span><span class=o>=</span>postgres://<span class=si>${</span><span class=nv>DB_USER</span><span class=si>}</span>:<span class=si>${</span><span class=nv>DB_PASSWORD</span><span class=si>}</span>@localhost:<span class=si>${</span><span class=nv>DB_PORT</span><span class=si>}</span>/<span class=si>${</span><span class=nv>DB_NAME</span><span class=si>}</span>
-</span></span><span class=line><span class=cl>sqlx database create
-</span></span></code></pre></td></tr></table></div></div><h2 id=关于-rust-config-库>关于 rust config 库</h2><p><a href=https://docs.rs/config/latest/config/>https://docs.rs/config/latest/config/</a></p><p>这个库还是非常方便的，可以处理多种文件格式的配置文件，并支持通过环境变量获取配置，下面是代码中使用的方式</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+一个项目是可以拥有多个二进制文件，因此一个项目项目是可以拥有多个二进制对象。当拥有多个对象时，对象的文件默认会放在 <code>src/bin/</code> 目录下。所以配置文件中 lib 是使用 <code>[lib]</code> 而 bin 是使用 <code>[[bin]]</code>。</p><h2 id=关于-rust-config-库>关于 rust config 库</h2><p><a href=https://docs.rs/config/latest/config/>https://docs.rs/config/latest/config/</a></p><p>这个库还是非常方便的，可以处理多种文件格式的配置文件，并支持通过环境变量获取配置，下面是代码中使用的方式</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
 </span><span class=lnt> 2
 </span><span class=lnt> 3
 </span><span class=lnt> 4
@@ -562,49 +772,10 @@
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=关于测试隔离>关于测试隔离</h2><p>There are two techniques I am aware of to ensure test isolation when interacting with a relational database in a test:</p><ul><li>wrap the whole test in a SQL transaction and rollback at the end of it</li><li>spin up a brand-new logical database for each integration test</li></ul><p>The first is clever and will generally be faster: rolling back a SQL transaction takes less time than spinning up a new logical database. It works quite well when writing unit tests for your queries but it is tricky to pull off in an integration test like ours: our application will borrow a PgConnection from a PgPool and we have no way to “capture” that connection in a SQL transaction context.
-Which leads us to the second option: potentially slower, yet much easier to implemen</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=c1>// Lauch our application in the background
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>async</span><span class=w> </span><span class=k>fn</span> <span class=nf>spawn_app</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nc>TestApp</span><span class=w> </span><span class=p>{</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Lazy</span>::<span class=n>force</span><span class=p>(</span><span class=o>&amp;</span><span class=n>TRACING</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>listener</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>TcpListener</span>::<span class=n>bind</span><span class=p>(</span><span class=s>&#34;127.0.0.1:0&#34;</span><span class=p>).</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed to bind random port&#34;</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>port</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>listener</span><span class=p>.</span><span class=n>local_addr</span><span class=p>().</span><span class=n>unwrap</span><span class=p>().</span><span class=n>port</span><span class=p>();</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>address</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=fm>format!</span><span class=p>(</span><span class=s>&#34;http://127.0.0.1:{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>port</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>configuration</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>get_configuration</span><span class=p>().</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed to read configuration.&#34;</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>configuration</span><span class=p>.</span><span class=n>database</span><span class=p>.</span><span class=n>database_name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Uuid</span>::<span class=n>new_v4</span><span class=p>().</span><span class=n>to_string</span><span class=p>();</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>connection_pool</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>configure_database</span><span class=p>(</span><span class=o>&amp;</span><span class=n>configuration</span><span class=p>.</span><span class=n>database</span><span class=p>).</span><span class=k>await</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>server</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>run</span><span class=p>(</span><span class=n>listener</span><span class=p>,</span><span class=w> </span><span class=n>connection_pool</span><span class=p>.</span><span class=n>clone</span><span class=p>()).</span><span class=n>expect</span><span class=p>(</span><span class=s>&#34;Failed to bind address&#34;</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>_</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tokio</span>::<span class=n>spawn</span><span class=p>(</span><span class=n>server</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>TestApp</span><span class=w> </span><span class=p>{</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>address</span><span class=p>,</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>db_pool</span>: <span class=nc>connection_pool</span><span class=p>,</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>上述代码是在tests 中 程序使用的，这种用法还是挺方便的，每次测试是时的 <code>database_name</code> 都是使用<code>uuid</code>生成.</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+</span></span></span></code></pre></td></tr></table></div></div></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
 <span class=item-content>fan-tastic.fun</span></p><p class=copyright-item><span class=item-title>LastMod</span>
-<span class=item-content>2023-02-13
-<a href=#ZgotmplZ/commit/3184d1ee2c42183e4859ba3098090af9ae14dfb5 title="feat: 更新《Zero To Production In Rust》笔记(二)">(3184d1e)</a></span></p><p class=copyright-item><span class=item-title>License</span>
+<span class=item-content>2023-02-14
+<a href=#ZgotmplZ/commit/5153e7cd9aa5e5f5e82b2536af5b4bf7755771b4 title="feat: 《Zero To Production In Rust》笔记(二) 添加日志使用的相关部分">(5153e7c)</a></span></p><p class=copyright-item><span class=item-title>License</span>
 <span class=item-content><a rel="license noopener" href=https://creativecommons.org/licenses/by/4.0/ target=_blank>知识共享署名4.0</a></span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/rust/>rust</a></div><nav class=post-nav><a class=next href=/post/zero_to_product_in_rust_note1/><span class="next-text nav-default">《Zero To Production In Rust》笔记(一) ---- 开发前期准备</span>
 <span class="next-text nav-mobile">Next</span>
 <i class="iconfont icon-right"></i></a></nav></footer></article></div><div id=gitalk-container></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css crossorigin=anonymous><script src=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js crossorigin=anonymous></script>
