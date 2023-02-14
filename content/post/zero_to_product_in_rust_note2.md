@@ -6,7 +6,7 @@ tags: ["rust"]
 categories: ["《Zero To Production In Rust》笔记"]
 ---
 
-作者在关于这个项目的编写过程应该是目前看到的比较完善的，不管是继承测试，还是写代码的方式，作者最开始说：
+作者在关于这个项目的编写过程应该是目前看到的比较完善的，不管是集成测试，还是写代码的方式，就像作者最开始说：
 
 - Make a change
 - Compile the application
@@ -147,6 +147,86 @@ let address = format!("http://127.0.0.1:{}", port);
 
 ### 关于日志
 
+```toml
+tracing = { version = "0.1", features = ["log"] }
+tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }
+tracing-bunyan-formatter = "0.3"
+tracing-log = "0.1"
+```
+
+关于日志的处理，通过这几个库配合使用的。
+
+tracing
+> tracing expands upon logging-style diagnostics by allowing libraries and applications to record structured events with additional information about temporality and causality — unlike a log message, a span in tracing has a beginning and end time, may be entered and exited by the flow of execution, and may exist within a nested tree of similar spans
+
+tracing-subscriber
+> tracing is a framework for instrumenting Rust programs to collect scoped, structured, and async-aware diagnostics. The Subscriber trait represents the functionality necessary to collect this trace data. This crate contains tools for composing subscribers out of smaller units of behaviour, and batteries-included implementations of common subscriber functionality.
+>
+> tracing-subscriber does much more than providing us with a few handy subscribers.It introduces another key trait into the picture, Layer.
+> Layer makes it possible to build a processing pipeline for spans data: we are not forced to provide an all-encompassing subscriber that does everything we want; we can instead combine multiple smaller layers to obtain the processing pipeline we need.This substantially reduces duplication across in tracing ecosystem: people are focused on adding new capabilities by churning out new layers rather than trying to build the best-possible-batteries-included subscriber
+
+We’d like to put together a subscriber that has feature-parity with the good old env_logger.
+We will get there by combining three layers:
+
+- tracing_subscriber::filter::EnvFilter discards spans based on their log levels and their origins, just as we did in env_logger via the RUST_LOG environment variable
+- tracing_bunyan_formatter::JsonStorageLayer processes spans data and stores the associated metadata in an easy-to-consume JSON format for downstream layers. It does, in particular, propagate context from parent spans to their children
+- tracing_bunyan_formatter::BunyanFormatterLayer builds on top of JsonStorageLayer and outputs log records in bunyan-compatible JSON format.
+
+```rust
+use tracing::{subscriber::set_global_default, Subscriber};
+use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
+use tracing_log::LogTracer;
+use tracing_subscriber::{fmt::MakeWriter, layer::SubscriberExt, EnvFilter, Registry};
+
+pub fn get_subscriber<Sink>(
+    name: String,
+    env_filter: String,
+    sink: Sink,
+) -> impl Subscriber + Send + Sync
+where
+    Sink: for<'a> MakeWriter<'a> + Send + Sync + 'static,
+{
+    let env_filter =
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(env_filter));
+    let formatting_layer = BunyanFormattingLayer::new(name, sink);
+    Registry::default()
+        .with(env_filter)
+        .with(JsonStorageLayer)
+        .with(formatting_layer)
+}
+
+pub fn init_subscriber(subscriber: impl Subscriber + Send + Sync) {
+    LogTracer::init().expect("Failed to set logger");
+    set_global_default(subscriber).expect("Failed to set subscriber");
+}
+
+```
+
+request ID
+`tracing-actix-web` : ensure all logs for a particular request, in particular the record with the returned status code, are enriched with a request_id property
+
+使用时也非常简单：
+
+```rust
+use tracing_actix_web::TracingLogger;
+
+use crate::routes::{health_check, subscribe};
+
+pub fn run(listener: TcpListener, db_pool: PgPool) -> Result<Server, std::io::Error> {
+    let db_pool = web::Data::new(db_pool);
+    let server = HttpServer::new(move || {
+        App::new()
+            .wrap(TracingLogger::default())
+            .route("/health_check", web::get().to(health_check))
+            .route("/subscriptions", web::post().to(subscribe))
+            .app_data(db_pool.clone())
+    })
+    .listen(listener)?
+    .run();
+    Ok(server)
+}
+```
+
 ## 关于测试
 
 在Rust 中通常把测试分为两种：单元测试和集成测试
@@ -173,6 +253,139 @@ mod tests {
 
 对于目前的这个程序来说，可以通过集成测试来测试对外提供的功能，在后续实现中，也可以根据需要对需要测试的函数添加单元测试。
 作者在这本书中非常的注重测试，这是自己需要改进的地方。
+
+### 本地开发Docker相关
+
+在本地开发时快速使用脚本用于去创建一个postgres的Docker容器
+
+```bash
+#!/usr/bin/env bash
+set -x
+set -eo pipefail
+
+if ! [ -x "$(command -v psql)" ]; then
+    echo >&2 "Error: psql is not installed."
+    exit 1
+fi
+
+if ! [ -x "$(command -v sqlx)" ]; then
+    echo >&2 "Error: sqlx is not installed."
+    echo >&2 "Use:"
+    echo >&2 " cargo install sqlx-cli"
+    echo >&2 "to install it."
+    exit 1
+fi
+
+# Check if a custom user has been set, otherwise default to 'postgres'
+DB_USER=${POSTGRES_USER:=postgres}
+# Check if a custom password has been set, otherwise default to 'password'
+DB_PASSWORD="${POSTGRES_PASSWORD:=password}"
+# Check if a custom database name has been set, otherwise default to 'newsletter'
+DB_NAME="${POSTGRES_DB:=newsletter}"
+# Check if a custom port has been set, otherwise default to '5432'
+DB_PORT="${POSTGRES_PORT:=5432}"
+
+
+# Launch postgres using Docker
+docker run \
+    -e POSTGRES_USER=${DB_USER} \
+    -e POSTGRES_PASSWORD=${DB_PASSWORD} \
+    -e POSTGRES_DB=${DB_NAME} \
+    -p "${DB_PORT}":5432 \
+    -d postgres \
+    postgres -N 1000
+    # Încreased maximum number of connections for testing purposes
+
+# Keep pinging Postgres until it's ready to accept commands 
+export PGPASSWORD="${DB_PASSWORD}"
+until psql -h "localhost" -U "${DB_USER}" -p "${DB_PORT}" -d "postgres" -c '\q'; do 
+    >&2 echo "Postgres is still unavailable - sleeping" 
+    sleep 1
+done
+
+>&2 echo "Postgres is up and running on port ${DB_PORT}!"
+
+export DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_NAME}
+sqlx database create
+```
+
+### 关于测试隔离
+
+There are two techniques I am aware of to ensure test isolation when interacting with a relational database in a test:
+
+- wrap the whole test in a SQL transaction and rollback at the end of it
+- spin up a brand-new logical database for each integration test
+
+The first is clever and will generally be faster: rolling back a SQL transaction takes less time than spinning up a new logical database. It works quite well when writing unit tests for your queries but it is tricky to pull off in an integration test like ours: our application will borrow a PgConnection from a PgPool and we have no way to “capture” that connection in a SQL transaction context.
+Which leads us to the second option: potentially slower, yet much easier to implemen
+
+```rust
+// Lauch our application in the background
+async fn spawn_app() -> TestApp {
+    Lazy::force(&TRACING);
+
+    let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
+    let port = listener.local_addr().unwrap().port();
+    let address = format!("http://127.0.0.1:{}", port);
+
+    let mut configuration = get_configuration().expect("Failed to read configuration.");
+    configuration.database.database_name = Uuid::new_v4().to_string();
+    let connection_pool = configure_database(&configuration.database).await;
+
+    let server = run(listener, connection_pool.clone()).expect("Failed to bind address");
+    let _ = tokio::spawn(server);
+    TestApp {
+        address,
+        db_pool: connection_pool,
+    }
+}
+```
+
+上述代码是在 `tests` 中 程序使用的，这种用法还是挺方便的，每次测试时 `database_name` 都是使用`uuid`生成.
+
+### log 在测试中的使用
+
+```rust
+
+static TRACING: Lazy<()> = Lazy::new(|| {
+    let default_filter_level = "info".to_string();
+    let subscribe_name = "test".to_string();
+    if std::env::var("TEST_LOG").is_ok() {
+        let subscriber = get_subscriber(subscribe_name, default_filter_level, std::io::stdout);
+        init_subscriber(subscriber);
+    } else {
+        let subscriber = get_subscriber(subscribe_name, default_filter_level, std::io::sink);
+        init_subscriber(subscriber);
+    };
+});
+
+pub struct TestApp {
+    pub address: String,
+    pub db_pool: PgPool,
+}
+
+// Lauch our application in the background
+async fn spawn_app() -> TestApp {
+    Lazy::force(&TRACING);
+
+    let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
+    let port = listener.local_addr().unwrap().port();
+    let address = format!("http://127.0.0.1:{}", port);
+
+    let mut configuration = get_configuration().expect("Failed to read configuration.");
+    configuration.database.database_name = Uuid::new_v4().to_string();
+    let connection_pool = configure_database(&configuration.database).await;
+
+    let server = run(listener, connection_pool.clone()).expect("Failed to bind address");
+    let _ = tokio::spawn(server);
+    TestApp {
+        address,
+        db_pool: connection_pool,
+    }
+}
+```
+
+每个测试时隔离的，在每个测试中都会调用 `spawn_app` ,这里使用了 `once_cell`保证 log 的部分只会被初始化一次。
 
 ## 关于Config.toml 中的 lib 和 bin
 
@@ -235,61 +448,6 @@ Cargo 项目中包含有一些对象，它们包含的源代码文件可以被�
 库对象用于定义一个库，该库可以被其它的库或者可执行文件所链接。该对象包含的默认文件名是 `src/lib.rs`，且默认情况下，库对象的名称跟项目名是一致的
 二进制对象在被编译后可以生成可执行的文件，默认的文件名是 `src/main.rs`，二进制对象的名称跟项目名也是相同的。
 一个项目是可以拥有多个二进制文件，因此一个项目项目是可以拥有多个二进制对象。当拥有多个对象时，对象的文件默认会放在 `src/bin/` 目录下。所以配置文件中 lib 是使用 `[lib]` 而 bin 是使用 `[[bin]]`。
-
-## 本地开发Docker相关
-
-在本地开发时快速使用脚本用于去创建一个postgres的Docker容器
-
-```bash
-#!/usr/bin/env bash
-set -x
-set -eo pipefail
-
-if ! [ -x "$(command -v psql)" ]; then
-    echo >&2 "Error: psql is not installed."
-    exit 1
-fi
-
-if ! [ -x "$(command -v sqlx)" ]; then
-    echo >&2 "Error: sqlx is not installed."
-    echo >&2 "Use:"
-    echo >&2 " cargo install sqlx-cli"
-    echo >&2 "to install it." 
-    exit 1
-fi
-
-# Check if a custom user has been set, otherwise default to 'postgres'
-DB_USER=${POSTGRES_USER:=postgres}
-# Check if a custom password has been set, otherwise default to 'password'
-DB_PASSWORD="${POSTGRES_PASSWORD:=password}"
-# Check if a custom database name has been set, otherwise default to 'newsletter'
-DB_NAME="${POSTGRES_DB:=newsletter}"
-# Check if a custom port has been set, otherwise default to '5432'
-DB_PORT="${POSTGRES_PORT:=5432}"
-
-
-# Launch postgres using Docker
-docker run \
-    -e POSTGRES_USER=${DB_USER} \
-    -e POSTGRES_PASSWORD=${DB_PASSWORD} \
-    -e POSTGRES_DB=${DB_NAME} \
-    -p "${DB_PORT}":5432 \
-    -d postgres \
-    postgres -N 1000
-    # Încreased maximum number of connections for testing purposes
-
-# Keep pinging Postgres until it's ready to accept commands 
-export PGPASSWORD="${DB_PASSWORD}"
-until psql -h "localhost" -U "${DB_USER}" -p "${DB_PORT}" -d "postgres" -c '\q'; do 
-    >&2 echo "Postgres is still unavailable - sleeping" 
-    sleep 1
-done
-
->&2 echo "Postgres is up and running on port ${DB_PORT}!"
-
-export DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_NAME}
-sqlx database create
-```
 
 ## 关于 rust config 库
 
@@ -399,37 +557,3 @@ impl TryFrom<String> for Environment {
 }
 
 ```
-
-## 关于测试隔离
-
-There are two techniques I am aware of to ensure test isolation when interacting with a relational database in a test:
-
-- wrap the whole test in a SQL transaction and rollback at the end of it
-- spin up a brand-new logical database for each integration test
-
-The first is clever and will generally be faster: rolling back a SQL transaction takes less time than spinning up a new logical database. It works quite well when writing unit tests for your queries but it is tricky to pull off in an integration test like ours: our application will borrow a PgConnection from a PgPool and we have no way to “capture” that connection in a SQL transaction context.
-Which leads us to the second option: potentially slower, yet much easier to implemen
-
-```rust
-// Lauch our application in the background
-async fn spawn_app() -> TestApp {
-    Lazy::force(&TRACING);
-
-    let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
-    let port = listener.local_addr().unwrap().port();
-    let address = format!("http://127.0.0.1:{}", port);
-
-    let mut configuration = get_configuration().expect("Failed to read configuration.");
-    configuration.database.database_name = Uuid::new_v4().to_string();
-    let connection_pool = configure_database(&configuration.database).await;
-
-    let server = run(listener, connection_pool.clone()).expect("Failed to bind address");
-    let _ = tokio::spawn(server);
-    TestApp {
-        address,
-        db_pool: connection_pool,
-    }
-}
-```
-
-上述代码是在tests 中 程序使用的，这种用法还是挺方便的，每次测试是时的 `database_name` 都是使用`uuid`生成.
