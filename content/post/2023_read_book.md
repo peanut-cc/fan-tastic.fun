@@ -14,5 +14,5 @@ draft: false
 | 《数据密集型应用系统设计》     | Martin Kleppmann | ing  |
 | 《必有人重写爱情》             | 北岛             | ing  |            |
 | 《代码整洁之道》               | Robert.C.Martin  | done | 2023-02-13 |
-| 《重构：改善既有代码的设计》   | Martin Fowler    | ing  |            |
+| 《重构：改善既有代码的设计》   | Martin Fowler    | done | 2023-02-25 |
 | 《Zero to Production in Rust》 | Luca Palmieri    | ing  |            |
