@@ -16,3 +16,4 @@ draft: false
 | 《代码整洁之道》               | Robert.C.Martin  | done | 2023-02-13 |
 | 《重构：改善既有代码的设计》   | Martin Fowler    | done | 2023-02-25 |
 | 《Zero to Production in Rust》 | Luca Palmieri    | ing  |            |
+| 《分成两半的子爵》             | 卡尔维诺         | ing  |            |
