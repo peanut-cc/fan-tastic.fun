@@ -18,5 +18,5 @@ draft: false
 | 《Zero to Production in Rust》               | Luca Palmieri    | ing  |            |
 | 《分成两半的子爵》                           | 卡尔维诺         | done | 2023-02-26 |
 | 《羊道三部曲：春牧场+前山夏牧场+深山夏牧场》 | 李娟             | ing  |            |
-| 《无限可能：快速唤醒你的学习脑》             | Jim Kwik         | ing  |            |
+| 《无限可能：快速唤醒你的学习脑》             | Jim Kwik         | done | 2023-03-04 |
 | 《PostgresSQL 修炼之道》                     | 唐成             | ing  |            |
