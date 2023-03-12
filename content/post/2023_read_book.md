@@ -22,3 +22,4 @@ draft: false
 | 10  | 《PostgresSQL 修炼之道》                                                 | 唐成             | ing  |            |
 | 11  | 《羊道三部曲：前山夏牧场》                                               | 李娟             | ing  |            |
 | 12  | 《Show Your Work!: 10 Ways to Share Your Creativity and Get Discovered》 | Austin Kleon     | ing  |            |
+| 13  | 《一个叫欧维的男人决定去死》                                             | 巴克曼           | ing  |            |
