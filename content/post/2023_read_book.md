@@ -15,7 +15,7 @@ draft: false
 | 3   | 《必有人重写爱情》                                                       | 北岛             | done | 2023-02-26 |
 | 4   | 《代码整洁之道》                                                         | Robert.C.Martin  | done | 2023-02-13 |
 | 5   | 《重构：改善既有代码的设计》                                             | Martin Fowler    | done | 2023-02-25 |
-| 6   | 《Zero to Production in Rust》                                           | Luca Palmieri    | ing  |            |
+| 6   | 《Zero to Production in Rust》                                           | Luca Palmieri    | done | 2023-03-21 |
 | 7   | 《分成两半的子爵》                                                       | 卡尔维诺         | done | 2023-02-26 |
 | 8   | 《羊道三部曲：春牧场》                                                   | 李娟             | done | 2023-03-06 |
 | 9   | 《无限可能：快速唤醒你的学习脑》                                         | Jim Kwik         | done | 2023-03-04 |
