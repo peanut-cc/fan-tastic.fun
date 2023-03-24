@@ -20,7 +20,8 @@ draft: false
 | 8   | 《羊道三部曲：春牧场》                                                   | 李娟             | done | 2023-03-06 |
 | 9   | 《无限可能：快速唤醒你的学习脑》                                         | Jim Kwik         | done | 2023-03-04 |
 | 10  | 《PostgresSQL 修炼之道》                                                 | 唐成             | ing  |            |
-| 11  | 《羊道三部曲：前山夏牧场》                                               | 李娟             | ing  |            |
+| 11  | 《羊道三部曲：前山夏牧场》                                               | 李娟             | done | 2023-03-24 |
 | 12  | 《Show Your Work!: 10 Ways to Share Your Creativity and Get Discovered》 | Austin Kleon     | ing  |            |
 | 13  | 《一个叫欧维的男人决定去死》                                             | 巴克曼           | ing  |            |
 | 14  | 《Rust Atomics and Locks》                                               | Mara Bos         | ing  |            |
+| 15  | 《羊道三部曲：深山夏牧场》                                               | 李娟             | ing  |            |
