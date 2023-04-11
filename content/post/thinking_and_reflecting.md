@@ -1,7 +1,9 @@
 ---
-title: "Think & Reflecting"
+title: "Thinking & Reflecting"
 date: 2023-04-10T11:04:05+08:00
-draft: true
+draft: false
+tags: ["Thinking"]
+categories: ["Thinking"]
 ---
 
 其实去年自己在很多方面都做了尝试了，在这个过程中发现了自己存在的很多问题，这两天自己做了一些反思和总结。
