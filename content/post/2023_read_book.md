@@ -8,23 +8,24 @@ draft: false
 
 ## 2023年读书记录
 
-| id  | name                                                                     | author           | sate | date       |
-| --- | ------------------------------------------------------------------------ | ---------------- | ---- | ---------- |
-| 1   | 《可能性的艺术》                                                         | 刘瑜             | done | 2023-01-09 |
-| 2   | 《数据密集型应用系统设计》                                               | Martin Kleppmann | ing  |
-| 3   | 《必有人重写爱情》                                                       | 北岛             | done | 2023-02-26 |
-| 4   | 《代码整洁之道》                                                         | Robert.C.Martin  | done | 2023-02-13 |
-| 5   | 《重构：改善既有代码的设计》                                             | Martin Fowler    | done | 2023-02-25 |
-| 6   | 《Zero to Production in Rust》                                           | Luca Palmieri    | done | 2023-03-21 |
-| 7   | 《分成两半的子爵》                                                       | 卡尔维诺         | done | 2023-02-26 |
-| 8   | 《羊道三部曲：春牧场》                                                   | 李娟             | done | 2023-03-06 |
-| 9   | 《无限可能：快速唤醒你的学习脑》                                         | Jim Kwik         | done | 2023-03-04 |
-| 10  | 《PostgresSQL 修炼之道》                                                 | 唐成             | ing  |            |
-| 11  | 《羊道三部曲：前山夏牧场》                                               | 李娟             | done | 2023-03-24 |
-| 12  | 《Show Your Work!: 10 Ways to Share Your Creativity and Get Discovered》 | Austin Kleon     | ing  |            |
-| 13  | 《一个叫欧维的男人决定去死》                                             | 巴克曼           | ing  |            |
-| 14  | 《Rust Atomics and Locks》                                               | Mara Bos         | ing  |            |
-| 15  | 《羊道三部曲：深山夏牧场》                                               | 李娟             | ing  |            |
-| 16  | 《稀缺：我们是如何陷入贫穷与忙碌的》                                     | 穆来纳森，沙菲尔 | done | 2023-04-01 |
-| 17  | 《始于极限》                                     | 上野千鹤子、铃木凉美  | done | 2023-04-04 |
-| 18  | 《Rust in Action》                                     | 蒂姆·麦克纳马拉  | ing | |
+| id  | name                                                                     | author               | sate | date       |
+| --- | ------------------------------------------------------------------------ | -------------------- | ---- | ---------- |
+| 1   | 《可能性的艺术》                                                         | 刘瑜                 | done | 2023-01-09 |
+| 2   | 《数据密集型应用系统设计》                                               | Martin Kleppmann     | ing  |
+| 3   | 《必有人重写爱情》                                                       | 北岛                 | done | 2023-02-26 |
+| 4   | 《代码整洁之道》                                                         | Robert.C.Martin      | done | 2023-02-13 |
+| 5   | 《重构：改善既有代码的设计》                                             | Martin Fowler        | done | 2023-02-25 |
+| 6   | 《Zero to Production in Rust》                                           | Luca Palmieri        | done | 2023-03-21 |
+| 7   | 《分成两半的子爵》                                                       | 卡尔维诺             | done | 2023-02-26 |
+| 8   | 《羊道三部曲：春牧场》                                                   | 李娟                 | done | 2023-03-06 |
+| 9   | 《无限可能：快速唤醒你的学习脑》                                         | Jim Kwik             | done | 2023-03-04 |
+| 10  | 《PostgresSQL 修炼之道》                                                 | 唐成                 | ing  |            |
+| 11  | 《羊道三部曲：前山夏牧场》                                               | 李娟                 | done | 2023-03-24 |
+| 12  | 《Show Your Work!: 10 Ways to Share Your Creativity and Get Discovered》 | Austin Kleon         | ing  |            |
+| 13  | 《一个叫欧维的男人决定去死》                                             | 巴克曼               | ing  |            |
+| 14  | 《Rust Atomics and Locks》                                               | Mara Bos             | ing  |            |
+| 15  | 《羊道三部曲：深山夏牧场》                                               | 李娟                 | ing  |            |
+| 16  | 《稀缺：我们是如何陷入贫穷与忙碌的》                                     | 穆来纳森，沙菲尔     | done | 2023-04-01 |
+| 17  | 《始于极限》                                                             | 上野千鹤子、铃木凉美 | done | 2023-04-04 |
+| 18  | 《Rust in Action》                                                       | 蒂姆·麦克纳马拉      | ing  |            |
+| 19  | 《一百年，许多人，许多事：杨苡口述自传》                                 | 杨苡口述,余斌撰写    | done | 2023-04-12 |
