@@ -1,0 +1,436 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>《Rust Atomics and Locks Low-Level 》阅读笔记1 - fan-tastic.fun</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="fan-tastic.fun"><meta name=description content="Threads in Rust 在 Rust 中 可以通过标准库中 std:🧵:spawn 创建线程。 1 2 3 4 5 6 7 8 9 10 11 12 13 14 use std::thread; fn main() { thread::spawn(f); thread::spawn(f); println!(&amp;#34;Hello from the main thread.&amp;#34;); } fn f() { println!(&amp;#34;hello from another thread&amp;#34;); let id = thread::current().id(); println!(&amp;#34;This is"><meta name=keywords content="rust,thread,concurrency"><meta name=generator content="Hugo 0.104.0 with theme even"><link rel=canonical href=https://www.fan-tastic.fun/post/basic_of_rust_concurrency/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="《Rust Atomics and Locks Low-Level 》阅读笔记1"><meta property="og:description" content="Threads in Rust 在 Rust 中 可以通过标准库中 std:🧵:spawn 创建线程。 1 2 3 4 5 6 7 8 9 10 11 12 13 14 use std::thread; fn main() { thread::spawn(f); thread::spawn(f); println!(&#34;Hello from the main thread.&#34;); } fn f() { println!(&#34;hello from another thread&#34;); let id = thread::current().id(); println!(&#34;This is"><meta property="og:type" content="article"><meta property="og:url" content="https://www.fan-tastic.fun/post/basic_of_rust_concurrency/"><meta property="article:section" content="post"><meta property="article:published_time" content="2023-04-18T14:38:08+08:00"><meta property="article:modified_time" content="2023-04-23T11:10:04+08:00"><meta itemprop=name content="《Rust Atomics and Locks Low-Level 》阅读笔记1"><meta itemprop=description content="Threads in Rust 在 Rust 中 可以通过标准库中 std:🧵:spawn 创建线程。 1 2 3 4 5 6 7 8 9 10 11 12 13 14 use std::thread; fn main() { thread::spawn(f); thread::spawn(f); println!(&#34;Hello from the main thread.&#34;); } fn f() { println!(&#34;hello from another thread&#34;); let id = thread::current().id(); println!(&#34;This is"><meta itemprop=datePublished content="2023-04-18T14:38:08+08:00"><meta itemprop=dateModified content="2023-04-23T11:10:04+08:00"><meta itemprop=wordCount content="3000"><meta itemprop=keywords content="Rust,"><meta name=twitter:card content="summary"><meta name=twitter:title content="《Rust Atomics and Locks Low-Level 》阅读笔记1"><meta name=twitter:description content="Threads in Rust 在 Rust 中 可以通过标准库中 std:🧵:spawn 创建线程。 1 2 3 4 5 6 7 8 9 10 11 12 13 14 use std::thread; fn main() { thread::spawn(f); thread::spawn(f); println!(&#34;Hello from the main thread.&#34;); } fn f() { println!(&#34;hello from another thread&#34;); let id = thread::current().id(); println!(&#34;This is"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
+<script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>fan-tastic</a></div><div class=mobile-navbar-icon><span></span>
+<span></span>
+<span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/><li class=mobile-menu-item>Home</li></a><a href=/post/><li class=mobile-menu-item>Archives</li></a><a href=/tags/><li class=mobile-menu-item>Tags</li></a><a href=/categories/><li class=mobile-menu-item>Categories</li></a><a href=/about/><li class=mobile-menu-item>About</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/ class=logo>fan-tastic</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/>Home</a></li><li class=menu-item><a class=menu-item-link href=/post/>Archives</a></li><li class=menu-item><a class=menu-item-link href=/tags/>Tags</a></li><li class=menu-item><a class=menu-item-link href=/categories/>Categories</a></li><li class=menu-item><a class=menu-item-link href=/about/>About</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>《Rust Atomics and Locks Low-Level 》阅读笔记1</h1><div class=post-meta><span class=post-time>2023-04-18</span><div class=post-category><a href=/categories/rust/>Rust</a></div><span class=more-meta>3000 words</span>
+<span class=more-meta>6 mins read</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>Contents</h2><div class=post-toc-content><nav id=TableOfContents><ul><li><ul><li><a href=#threads-in-rust>Threads in Rust</a></li><li><a href=#共享所有权-和-引用计数>共享所有权 和 引用计数</a></li><li><a href=#内部可变性-interior-mutability>内部可变性 Interior Mutability</a></li><li><a href=#rwlock-and-mutex>RwLock and Mutex</a></li><li><a href=#condition-variables>Condition Variables</a></li><li><a href=#thread-safety>Thread Safety</a></li></ul></li></ul></nav></div></div><div class=post-content><h2 id=threads-in-rust>Threads in Rust</h2><p>在 Rust 中 可以通过标准库中 <code>std:🧵:spawn</code> 创建线程。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>thread</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>thread</span>::<span class=n>spawn</span><span class=p>(</span><span class=n>f</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>thread</span>::<span class=n>spawn</span><span class=p>(</span><span class=n>f</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;Hello from the main thread.&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>f</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;hello from another thread&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>thread</span>::<span class=n>current</span><span class=p>().</span><span class=n>id</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;This is my thread id:{id:?}&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>这段代码需要注意,<code>main</code> 线程一旦结束，程序就会立刻退出，上面的代码中，通过<code>thread::spawn(f);</code>创建了两个线程，但是多次运行程序你会发现，他们可能并没有机会运行。</p><p>如果想要保证所有的线程执行完成，可以使用 <code>join</code> 方法：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>thread</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>t1</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>thread</span>::<span class=n>spawn</span><span class=p>(</span><span class=n>f</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>t2</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>thread</span>::<span class=n>spawn</span><span class=p>(</span><span class=n>f</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;Hello from the main thread.&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>t1</span><span class=p>.</span><span class=n>join</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>t2</span><span class=p>.</span><span class=n>join</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>f</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;hello from another thread&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>thread</span>::<span class=n>current</span><span class=p>().</span><span class=n>id</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;This is my thread id:{id:?}&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p><code>join</code> 方法会等待线程执行完成并切返回 <code>std:🧵:Result</code>,如果线程执行失败，这个返回的数据中将会包含<code>panic</code>的信息。</p><p>在创建线程的时候还有一种使用更多的方式是通过闭包。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>thread</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>thread</span>::<span class=n>spawn</span><span class=p>(</span><span class=k>move</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>for</span><span class=w> </span><span class=n>n</span><span class=w> </span><span class=k>in</span><span class=w> </span><span class=o>&amp;</span><span class=n>numbers</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{n}&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>})</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>.</span><span class=n>join</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>.</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>因为在闭包的时候使用的<code>move</code>, <code>numbers</code>的所有权会传入到新的开启的线程中。
+如果我们没有使用<code>move</code>, 就不是发生所有权的转移，而是通过引用的方式在新的线程中使用<code>numbers</code>，但是这个时候编译代码就会提示如下错误：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=w>  </span><span class=o>|</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=mi>5</span><span class=w> </span><span class=o>|</span><span class=w>     </span><span class=n>thread</span>::<span class=n>spawn</span><span class=p>(</span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=o>|</span><span class=w>                   </span><span class=o>^^</span><span class=w> </span><span class=n>may</span><span class=w> </span><span class=n>outlive</span><span class=w> </span><span class=n>borrowed</span><span class=w> </span><span class=n>value</span><span class=w> </span><span class=err>`</span><span class=n>numbers</span><span class=err>`</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=mi>6</span><span class=w> </span><span class=o>|</span><span class=w>         </span><span class=k>for</span><span class=w> </span><span class=n>n</span><span class=w> </span><span class=k>in</span><span class=w> </span><span class=o>&amp;</span><span class=n>numbers</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=o>|</span><span class=w>                   </span><span class=o>-------</span><span class=w> </span><span class=err>`</span><span class=n>numbers</span><span class=err>`</span><span class=w> </span><span class=n>is</span><span class=w> </span><span class=n>borrowed</span><span class=w> </span><span class=n>here</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=o>|</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>note</span>: <span class=nc>function</span><span class=w> </span><span class=n>requires</span><span class=w> </span><span class=n>argument</span><span class=w> </span><span class=k>type</span> <span class=nc>to</span><span class=w> </span><span class=n>outlive</span><span class=w> </span><span class=err>`</span><span class=o>&#39;</span><span class=nb>static</span><span class=err>`</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=o>-</span>-&gt; <span class=nc>ch1</span><span class=o>-</span><span class=mi>03</span><span class=o>-</span><span class=n>spawn</span><span class=o>-</span><span class=n>closure</span><span class=p>.</span><span class=n>rs</span>:<span class=mi>5</span>:<span class=mi>5</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=o>|</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=mi>5</span><span class=w> </span><span class=o>|</span><span class=w> </span><span class=o>/</span><span class=w>     </span><span class=n>thread</span>::<span class=n>spawn</span><span class=p>(</span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=mi>6</span><span class=w> </span><span class=o>|</span><span class=w> </span><span class=o>|</span><span class=w>         </span><span class=k>for</span><span class=w> </span><span class=n>n</span><span class=w> </span><span class=k>in</span><span class=w> </span><span class=o>&amp;</span><span class=n>numbers</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=mi>7</span><span class=w> </span><span class=o>|</span><span class=w> </span><span class=o>|</span><span class=w>             </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{n}&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=mi>8</span><span class=w> </span><span class=o>|</span><span class=w> </span><span class=o>|</span><span class=w>         </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=mi>9</span><span class=w> </span><span class=o>|</span><span class=w> </span><span class=o>|</span><span class=w>     </span><span class=p>})</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=o>|</span><span class=w> </span><span class=o>|</span><span class=n>______</span><span class=o>^</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>help</span>: <span class=nc>to</span><span class=w> </span><span class=n>force</span><span class=w> </span><span class=n>the</span><span class=w> </span><span class=n>closure</span><span class=w> </span><span class=n>to</span><span class=w> </span><span class=n>take</span><span class=w> </span><span class=n>ownership</span><span class=w> </span><span class=n>of</span><span class=w> </span><span class=err>`</span><span class=n>numbers</span><span class=err>`</span><span class=w> </span><span class=p>(</span><span class=n>and</span><span class=w> </span><span class=n>any</span><span class=w> </span><span class=n>other</span><span class=w> </span><span class=n>referenced</span><span class=w> </span><span class=n>variables</span><span class=p>),</span><span class=w> </span><span class=k>use</span><span class=w> </span><span class=n>the</span><span class=w> </span><span class=err>`</span><span class=k>move</span><span class=err>`</span><span class=w> </span><span class=n>keyword</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=o>|</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=mi>5</span><span class=w> </span><span class=o>|</span><span class=w>     </span><span class=n>thread</span>::<span class=n>spawn</span><span class=p>(</span><span class=k>move</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=o>|</span><span class=w>                   </span><span class=o>++++</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>error</span>: <span class=nc>aborting</span><span class=w> </span><span class=n>due</span><span class=w> </span><span class=n>to</span><span class=w> </span><span class=n>previous</span><span class=w> </span><span class=n>error</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p><code>spawn</code>函数对其参数类型有一个 &ldquo;静态寿命&rdquo; 的约束，一个通过引用捕获局部变量的闭包不可能一直存在，当局部变量不再存在时，就会导致引用无效。</p><p>Rust 标准库 <code>std:🧵:scope</code>可以创建 <code>scoped threads</code>, 允许创建的线程安全的借用局部变量。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>thread</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>numbers</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=fm>vec!</span><span class=p>[</span><span class=mi>1</span><span class=p>,</span><span class=w> </span><span class=mi>2</span><span class=p>,</span><span class=w> </span><span class=mi>3</span><span class=p>,</span><span class=w> </span><span class=mi>4</span><span class=p>];</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>thread</span>::<span class=n>scope</span><span class=p>(</span><span class=o>|</span><span class=n>s</span><span class=o>|</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>s</span><span class=p>.</span><span class=n>spawn</span><span class=p>(</span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>numbers</span><span class=p>.</span><span class=n>len</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>s</span><span class=p>.</span><span class=n>spawn</span><span class=p>(</span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>for</span><span class=w> </span><span class=n>n</span><span class=w> </span><span class=k>in</span><span class=w> </span><span class=o>&amp;</span><span class=n>numbers</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{n}&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>在<code>scope</code> 不用在使用 <code>join</code> 方法等待所有线程执行完成，而是变成自动 <code>join</code></p><h2 id=共享所有权-和-引用计数>共享所有权 和 引用计数</h2><p>在两个线程之间共享数据时，无法保证一个线程比另外一个线程“活得更久”，它们都不能成为该数据的所有者。</p><p><code>static</code> 静态变量会在整个程序运行的时期中存在。每一个线程都可以借用它。
+<code>Box</code> 使用<code>Box::leak</code>，可以释放一个<code>Box</code>的所有权，并保证永远不放弃它。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>thread</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>x</span>: <span class=kp>&amp;</span><span class=o>&#39;</span><span class=nb>static</span> <span class=p>[</span><span class=kt>i32</span><span class=p>;</span><span class=w> </span><span class=mi>3</span><span class=p>]</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=nb>Box</span>::<span class=n>leak</span><span class=p>(</span><span class=nb>Box</span>::<span class=n>new</span><span class=p>([</span><span class=mi>1</span><span class=p>,</span><span class=w> </span><span class=mi>2</span><span class=p>,</span><span class=w> </span><span class=mi>3</span><span class=p>]));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>thread</span>::<span class=n>spawn</span><span class=p>(</span><span class=k>move</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=fm>dbg!</span><span class=p>(</span><span class=n>x</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>thread</span>::<span class=n>spawn</span><span class=p>(</span><span class=k>move</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=fm>dbg!</span><span class=p>(</span><span class=n>x</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>Rust 标准库 <code>std::rc::Rc</code> , 引用计数，clone 它并不会分配任何新的东西，而是增加一个存储的值的一个引用计数。需要注意：<code>Rc</code> 不是线程安全的。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>rc</span>::<span class=n>Rc</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>a</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Rc</span>::<span class=n>new</span><span class=p>([</span><span class=mi>1</span><span class=p>,</span><span class=w> </span><span class=mi>2</span><span class=p>,</span><span class=w> </span><span class=mi>3</span><span class=p>]);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>b</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>a</span><span class=p>.</span><span class=n>clone</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>assert_eq!</span><span class=p>(</span><span class=n>a</span><span class=p>.</span><span class=n>as_ptr</span><span class=p>(),</span><span class=w> </span><span class=n>b</span><span class=p>.</span><span class=n>as_ptr</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>代码中 变量a 和 变量b 共享所有权。</p><p>标准库<code>std::sync::Arc</code>，标识原子引用计数，保证了对引用的计数器的修改是<code>原子操作</code>,因此可以安全的用于多线程。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>sync</span>::<span class=n>Arc</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>thread</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>a</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Arc</span>::<span class=n>new</span><span class=p>([</span><span class=mi>1</span><span class=p>,</span><span class=w> </span><span class=mi>2</span><span class=p>,</span><span class=w> </span><span class=mi>3</span><span class=p>]);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>b</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>a</span><span class=p>.</span><span class=n>clone</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>thread</span>::<span class=n>spawn</span><span class=p>(</span><span class=k>move</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=fm>dbg!</span><span class=p>(</span><span class=n>a</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>thread</span>::<span class=n>spawn</span><span class=p>(</span><span class=k>move</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=fm>dbg!</span><span class=p>(</span><span class=n>b</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><blockquote><p>Rust allows (and encourages) you to shadow variables by defining a new variable with the same name</p></blockquote><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>sync</span>::<span class=n>Arc</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>thread</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>a</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Arc</span>::<span class=n>new</span><span class=p>([</span><span class=mi>1</span><span class=p>,</span><span class=w> </span><span class=mi>2</span><span class=p>,</span><span class=w> </span><span class=mi>3</span><span class=p>]);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>thread</span>::<span class=n>spawn</span><span class=p>({</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>a</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>a</span><span class=p>.</span><span class=n>clone</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>move</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=fm>dbg!</span><span class=p>(</span><span class=n>a</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>dbg!</span><span class=p>(</span><span class=n>a</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><blockquote><p>Because ownership is shared, reference counting pointers (<code>Rc&lt;T></code> and <code>Arc&lt;T></code>) have the same restrictions as shared references (<code>&T</code>). They do not give you mutable access to their contained value, since the value might be borrowed by other code at the same time.</p></blockquote><h2 id=内部可变性-interior-mutability>内部可变性 Interior Mutability</h2><p>共享引用（<code>&T</code>）可以被复制并与他人共享，而独占引用（<code>&mut T</code>）则保证它是该<code>T</code>的唯一独占借用。</p><p>使用标准库 <code>std::cell:Cell&lt;T></code> 允许通过共享引用进行突变，允许把值复制出来（如果T是可Copy的），或者用另外一个值替换。
+注意：Cell 只能在单个线程中使用。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>f</span><span class=p>(</span><span class=n>v</span>: <span class=kp>&amp;</span><span class=nc>Cell</span><span class=o>&lt;</span><span class=nb>Vec</span><span class=o>&lt;</span><span class=kt>i32</span><span class=o>&gt;&gt;</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>v2</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>v</span><span class=p>.</span><span class=n>take</span><span class=p>();</span><span class=w> </span><span class=c1>// Replaces the contents of the Cell with an empty Vec
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>v2</span><span class=p>.</span><span class=n>push</span><span class=p>(</span><span class=mi>1</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>v</span><span class=p>.</span><span class=n>set</span><span class=p>(</span><span class=n>v2</span><span class=p>);</span><span class=w> </span><span class=c1>// Put the modified Vec back
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>a <code>std::cell::RefCell</code> does allow you to borrow its contents, at a small runtime cost.</p><p>一个<code>RefCell&lt;T></code>不仅持有一个<code>T</code>，而且还持有一个<code>counter</code>，用于跟踪任何未完成的<code>borrow</code>。如果已经被<code>mutably borrow</code>了，再进行借用，就会Panic。
+注意：RefCell 只能在单个线程中使用。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>cell</span>::<span class=n>RefCell</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>f</span><span class=p>(</span><span class=n>v</span>: <span class=kp>&amp;</span><span class=nc>RefCell</span><span class=o>&lt;</span><span class=nb>Vec</span><span class=o>&lt;</span><span class=kt>i32</span><span class=o>&gt;&gt;</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>v</span><span class=p>.</span><span class=n>borrow_mut</span><span class=p>().</span><span class=n>push</span><span class=p>(</span><span class=mi>1</span><span class=p>);</span><span class=w> </span><span class=c1>// We can modify the `Vec` directly.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=rwlock-and-mutex>RwLock and Mutex</h2><p><code>RwLock</code> 是<code>RefCell</code>的并发版本，不同的是，这个不会在冲突的<code>borrow</code> 发生panic, 而是阻塞当前的线程，使其进入睡眠状态，同时等待冲突的<code>borrow</code> 消失。</p><p><code>Mutex</code> 不会像 RwLock那样记录共享和独占的借用的数量，而只允许独占<code>borrow</code>。</p><p><code>atomic</code>是 <code>Cell</code>的并发版本，不过不同的是不能有任意的大小，所以没有通用的<code>Atomic&lt;T></code>类型，只有特定类型的<code>Atomic</code>类型。</p><p>为了保证被Lock的的<code>Mutex</code>只能被<code>Lock</code> 的线程解锁，这里并没有提供一个<code>unlock()</code>方法，而是在<code>lock()</code>方法返回一个特殊的类型<code>MutexGuard</code>, 这个就标识了我们已经锁定了<code>Mutex</code>, 它的行为类似于通过<code>DerefMut</code>特性的独占引用，让我们独占访问<code>Mutex</code>所保护的数据。解除对<code>Mutex</code>的锁定是通过 Drop guard。</p><p>When we drop the guard, we give up our ability to access the data, and the Drop implementation of the guard will unlock the mutex.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>sync</span>::<span class=n>Mutex</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>thread</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>n</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Mutex</span>::<span class=n>new</span><span class=p>(</span><span class=mi>0</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>thread</span>::<span class=n>scope</span><span class=p>(</span><span class=o>|</span><span class=n>s</span><span class=o>|</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>for</span><span class=w> </span><span class=n>_</span><span class=w> </span><span class=k>in</span><span class=w> </span><span class=mi>0</span><span class=o>..</span><span class=mi>10</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>s</span><span class=p>.</span><span class=n>spawn</span><span class=p>(</span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>guard</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>n</span><span class=p>.</span><span class=n>lock</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=k>for</span><span class=w> </span><span class=n>_</span><span class=w> </span><span class=k>in</span><span class=w> </span><span class=mi>0</span><span class=o>..</span><span class=mi>100</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=o>*</span><span class=n>guard</span><span class=w> </span><span class=o>+=</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>assert_eq!</span><span class=p>(</span><span class=n>n</span><span class=p>.</span><span class=n>into_inner</span><span class=p>().</span><span class=n>unwrap</span><span class=p>(),</span><span class=w> </span><span class=mi>1000</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>After the threads are done, we can safely remove the protection from the integer through into_inner(). The into_inner method takes ownership of the mutex, which guarantees that nothing else can have a reference to the mutex anymore, making locking unnecessary.</p><p>在Rust 中，当一个线程在持有锁的时候出现的panic, <code>Mutext</code>会被标记为 <code>poisoned</code>, 这种情况下<code>Mutex</code>将不再被锁定，但调用它的锁定方法将会导致一个Err来标识已经被 <code>poisoned</code>。
+在一个已经被标记为<code>poisoned</code>的<code>Mutext</code>调用<code>lock()</code>仍然会锁定该<code>Mutext</code>, <code>lock()</code> 的 Err 包含 <code>MutextGuard</code>,允许我们在必要时纠正一个不一致的状态。</p><p><code>RwLock</code> 有三种状态： 解锁，被单个写锁定（用于独占访问），被任何数量的读锁定（用于共享访问），通畅用于经常被多个线程读取的数据。
+提供了<code>read()</code>和<code>write()</code>方法,用于读锁或者写锁，所以这里会有两个<code>guard</code>类型 <code>RwLockReadGuard</code>和 <code>RwLockWriteGuard</code>。
+<code>Mutext&lt;T></code> 和 <code>RwLock&lt;T></code>都要求<code>T</code>实现 <code>Send</code>,因为他们可以用来发送一个<code>T</code>给另外一个线程 <code>RwLock&lt;T></code> 还要求T实现<code>Sync</code> 它允许多个线程对受保护数据的共享引用（<code>&T</code>）</p><p>一个线程可以 <code>park</code>自己，进入睡眠状态，停止消耗任何CPU, 另外一个线程可以<code>unpark</code> 被 <code>park</code>状态的线程，把它从睡眠状态唤醒。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>collections</span>::<span class=n>VecDeque</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>sync</span>::<span class=n>Mutex</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>thread</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>time</span>::<span class=n>Duration</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>queue</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Mutex</span>::<span class=n>new</span><span class=p>(</span><span class=n>VecDeque</span>::<span class=n>new</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>thread</span>::<span class=n>scope</span><span class=p>(</span><span class=o>|</span><span class=n>s</span><span class=o>|</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>t</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>s</span><span class=p>.</span><span class=n>spawn</span><span class=p>(</span><span class=o>||</span><span class=w> </span><span class=k>loop</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=kd>let</span><span class=w> </span><span class=n>item</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>queue</span><span class=p>.</span><span class=n>lock</span><span class=p>().</span><span class=n>unwrap</span><span class=p>().</span><span class=n>pop_front</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>if</span><span class=w> </span><span class=kd>let</span><span class=w> </span><span class=nb>Some</span><span class=p>(</span><span class=n>item</span><span class=p>)</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>item</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=fm>dbg!</span><span class=p>(</span><span class=n>item</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w> </span><span class=k>else</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>thread</span>::<span class=n>park</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>for</span><span class=w> </span><span class=n>i</span><span class=w> </span><span class=k>in</span><span class=w> </span><span class=mi>0</span><span class=o>..</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>queue</span><span class=p>.</span><span class=n>lock</span><span class=p>().</span><span class=n>unwrap</span><span class=p>().</span><span class=n>push_back</span><span class=p>(</span><span class=n>i</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>t</span><span class=p>.</span><span class=n>thread</span><span class=p>().</span><span class=n>unpark</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>thread</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>1</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=condition-variables>Condition Variables</h2><p>Condition variables are a more commonly used option for waiting for something to happen to data protected by a mutex. They have two basic operations: wait and notify.
+Threads can wait on a condition variable, after which they can be woken up when another thread notifies that same condition variable. Multiple threads can wait on the same condition variable, and notifications can either be sent to one waiting thread, or to all of them.
+This means that we can create a condition variable for specific events or conditions we’re interested in, such as the queue being non-empty, and wait on that condition.
+Any thread that causes that event or condition to happen then notifies the condition variable, without having to know which or how many threads are interested in that notification.
+The Rust standard library provides a condition variable as std::sync::Condvar. Its wait method takes a MutexGuard that proves we’ve locked the mutex. It first unlocks the mutex and goes to sleep. Later, when woken up, it relocks the mutex and returns a new MutexGuard (which proves that the mutex is locked again).</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>collections</span>::<span class=n>VecDeque</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>sync</span>::<span class=n>Condvar</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>sync</span>::<span class=n>Mutex</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>thread</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>time</span>::<span class=n>Duration</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>queue</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Mutex</span>::<span class=n>new</span><span class=p>(</span><span class=n>VecDeque</span>::<span class=n>new</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>not_empty</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Condvar</span>::<span class=n>new</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>thread</span>::<span class=n>scope</span><span class=p>(</span><span class=o>|</span><span class=n>s</span><span class=o>|</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>s</span><span class=p>.</span><span class=n>spawn</span><span class=p>(</span><span class=o>||</span><span class=w> </span><span class=k>loop</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>q</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>queue</span><span class=p>.</span><span class=n>lock</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=kd>let</span><span class=w> </span><span class=n>item</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>loop</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=k>if</span><span class=w> </span><span class=kd>let</span><span class=w> </span><span class=nb>Some</span><span class=p>(</span><span class=n>item</span><span class=p>)</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>q</span><span class=p>.</span><span class=n>pop_front</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=k>break</span><span class=w> </span><span class=n>item</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=p>}</span><span class=w> </span><span class=k>else</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                    </span><span class=n>q</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>not_empty</span><span class=p>.</span><span class=n>wait</span><span class=p>(</span><span class=n>q</span><span class=p>).</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nb>drop</span><span class=p>(</span><span class=n>q</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=fm>dbg!</span><span class=p>(</span><span class=n>item</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>for</span><span class=w> </span><span class=n>i</span><span class=w> </span><span class=k>in</span><span class=w> </span><span class=mi>0</span><span class=o>..</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>queue</span><span class=p>.</span><span class=n>lock</span><span class=p>().</span><span class=n>unwrap</span><span class=p>().</span><span class=n>push_back</span><span class=p>(</span><span class=n>i</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>not_empty</span><span class=p>.</span><span class=n>notify_one</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>thread</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>1</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>})</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>Normally, a Condvar is only ever used together with a single Mutex. If two threads try to concurrently wait on a condition variable using two different mutexes, it might cause a panic.</p><h2 id=thread-safety>Thread Safety</h2><blockquote><p>All primitive types such as i32, bool, and str are both Send and Sync.
+A struct with fields that are all Send and Sync, is itself also Send and Sync.</p></blockquote><p><strong>Send</strong>
+A type is Send if it can be sent to another thread. In other words, if ownership of a value of that type can > be transferred to another thread. For example, <code>Arc&lt;i32></code> is Send, but <code>Rc&lt;i32></code> is not.
+<strong>Sync</strong>
+A type is Sync if it can be shared with another thread. In other words, a type T is Sync if and only if a > shared reference to that type, &T, is Send. For example, an i32 is Sync, but a <code>Cell&lt;i32></code> is not. (A <code>Cell&lt;i32</code>> is Send, however.)</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+<span class=item-content>fan-tastic.fun</span></p><p class=copyright-item><span class=item-title>LastMod</span>
+<span class=item-content>2023-04-23
+<a href=#ZgotmplZ/commit/d6a180e7020a9aa11f74de009fabf45b12f8d28e title="feat: add Rust Atomics and Locks Low-Level note 1">(d6a180e)</a></span></p><p class=copyright-item><span class=item-title>License</span>
+<span class=item-content><a rel="license noopener" href=https://creativecommons.org/licenses/by/4.0/ target=_blank>知识共享署名4.0</a></span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/rust/>Rust</a></div><nav class=post-nav><a class=next href=/post/thinkphp5_sql_injection/><span class="next-text nav-default">Thinkphp5 SQL注入漏洞分析</span>
+<span class="next-text nav-mobile">Next</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div><div id=gitalk-container></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css crossorigin=anonymous><script src=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js crossorigin=anonymous></script>
+<script type=text/javascript>var gitalk=new Gitalk({id:"2023-04-18 14:38:08 \u002b0800 \u002b0800",title:"《Rust Atomics and Locks Low-Level 》阅读笔记1",clientID:"8e56c7d6ce34f788ca8f",clientSecret:"d8012ab38028c2fffa457e0449f958da07dc84e5",repo:"fan-tastic.fun",owner:"peanut-cc",admin:["peanut-cc"],body:decodeURI(location.href)});gitalk.render("gitalk-container")</script><noscript>Please enable JavaScript to view the <a href=https://github.com/gitalk/gitalk>comments powered by gitalk.</a></noscript></div></main><footer id=footer class=footer><div class=social-links><a href=https://github.com/peanut-cc class="iconfont icon-github" title=github></a>
+<a href=https://www.fan-tastic.fun/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>Powered by <a class=hexo-link href=https://gohugo.io>Hugo</a></span>
+<span class=division>|</span>
+<span class=theme-info>Theme -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2022 -
+2023<span class=heart><i class="iconfont icon-heart"></i></span><span>by fan-tastic.fun</span>
+<span><a class=theme-link href=https://beian.miit.gov.cn/>豫ICP备2022023372号-1</a></span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script>
+<script type=text/javascript src=/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js></script></body></html>
