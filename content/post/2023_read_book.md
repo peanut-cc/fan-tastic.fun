@@ -24,7 +24,7 @@ draft: false
 | 12  | 《Show Your Work!: 10 Ways to Share Your Creativity and Get Discovered》 | Austin Kleon         | ing  |            |
 | 13  | 《一个叫欧维的男人决定去死》                                             | 巴克曼               | ing  |            |
 | 14  | 《Rust Atomics and Locks》                                               | Mara Bos             | ing  |            |
-| 15  | 《羊道三部曲：深山夏牧场》                                               | 李娟                 | ing  |            |
+| 15  | 《羊道三部曲：深山夏牧场》                                               | 李娟                 | done | 2023-04-26 |
 | 16  | 《稀缺：我们是如何陷入贫穷与忙碌的》                                     | 穆来纳森，沙菲尔     | done | 2023-04-01 |
 | 17  | 《始于极限》                                                             | 上野千鹤子、铃木凉美 | done | 2023-04-04 |
 | 18  | 《Rust in Action》                                                       | 蒂姆·麦克纳马拉      | ing  |            |
