@@ -4,7 +4,7 @@ date: 2023-07-20T22:39:38+08:00
 tags: ["Rust", "rust安装"]
 categories: ["Rust"]
 keywords: ["rust","rust环境安装", "rust安装"]
-draft: true
+draft: false
 ---
 
 ## 安装Rust
