@@ -124,6 +124,38 @@ fn main() {
 数组、切片和向量还有 `.iter()` 和 `.iter_mut()` 方法, 这两个方法创建的迭代器产生对它们元素的引用.
 通常我们对向量进行for循环迭代时都推荐使用 `.iter()` 和 `.iter_mut()`.
 
+## `VecDeque<T>`
+
+`VecDeque<T>` 双端队列,支持前端和后端的高效添加和移除操作.
+
+创建`VecDeque<T>`的方法:
+
+- VecDeque::new()
+- VecDeque::with_capacity(n)
+- VecDeque::from(vec)
+
+虽然没有提供 `vec_deque![]` 宏的来快速创建创建双端队列, 但是 `VecDeque<T>` 实现了 `From<Vec<T>>`, 因此 `VecDeque::from(vec)`可以快速将向量转换为队列.
+
+### 内存布局
+
+![VecDeque内存布局](/images/rust_base_data_type/Vec内存布局.png)
+
+`VecDeque` 堆中的数据并不总是从头开始存储, 是可以环绕起来的
+栈中的数据除了当前缓冲区的大小,还包括了起点,终点,用于保存数据在缓冲区中的开始和结束位置.
+向队列的任何一端添加值都需要使用一个未被使用的"槽位",及途中的红色区域.如果添加时空间不够,则分配更多的内存.
+
+### 基本使用
+
+- deque.push_front(value) 在队列前面添加值
+- deque.push_back(value) 在队列后面添加值
+- deque.pop_front() 移除并返回队列前面的值，返回 `Option<T>`,队列为空时返回 `None`,跟 vec.pop() 一样
+- deque.pop_back() 移除并返回队列后面的值，同样返回 `Option<T>`
+- deque.front() 和 deque.back() 与 vec.first() 和 vec.last() 相似, 返回队列前端和后端元素的引用. 返回 `Option<T>`，队列为空时返回 `None`
+- deque.front_mut() 和 deque.back_mut() 与 vec.first_mut() 和 vec.last_mut() 相似,返回 `Option<&mut T>`
+
+更多方法参考: <https://doc.rust-lang.org/std/collections/vec_deque/struct.VecDeque.htmll>
+
 ## 相关链接
 
 - <https://doc.rust-lang.org/std/vec/struct.Vec.html>
+- <https://doc.rust-lang.org/std/collections/vec_deque/struct.VecDeque.htmll>
