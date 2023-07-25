@@ -138,7 +138,7 @@ fn main() {
 
 ### VecDeque内存布局
 
-![VecDeque内存布局](/images/rust_base_data_type/Vec内存布局.png)
+![VecDeque内存布局](/images/collections/vecdeque.png)
 
 `VecDeque` 堆中的数据并不总是从头开始存储, 是可以环绕起来的
 栈中的数据除了当前缓冲区的大小,还包括了起点,终点,用于保存数据在缓冲区中的开始和结束位置.
@@ -179,7 +179,7 @@ fn main() {
 
 ### LinkedList 内存布局
 
-![LinkedList内存布局](/images/rust_base_data_type/Vec内存布局.png)
+![LinkedList内存布局](/images/collections/linkedlist.png)
 
 ## `BinaryHeap<T>`
 
