@@ -1,0 +1,129 @@
+---
+title: "Rust笔记----集合"
+date: 2023-07-24T22:02:04+08:00
+tags: ["Rust"]
+categories: ["Rust"]
+keywords: ["rust","Vec", "VecDeque", "LinkedList", "HashMap"]
+draft: false
+---
+
+rust中有8个标准的集合,它们全部都是泛型类型.
+
+- `Vec<T>`
+- `VecDeque<T>`
+- `LinkedList<T>`
+- `BinaryHeap<T>`
+- `HashMap<K, V>和BTreeMap<K, V>`
+- `HashSet<T>和BTreeSet<T>`
+
+## `Vec<T>`
+
+Vec类型和数组类型的区别在于,Vec的长度动态可变.Vec的数据类型描述方式为`Vec<T>`
+
+创建向量的方式多种多样：
+
+- `let v = vec![1,2,3,4];`
+- `let v = vec!["fan-tastic";10];`
+- `let v = Vec::new();`
+- `let v: Vec<i32> = (0..5).collect();` 这种情况通常需要写明类型
+- `let v = Vec::with_capacity()` 创建空的vec, 容量可以根据需要自己设定
+
+### `Vec<T>` 内存布局
+
+对于 `let n = vec![1,2,3]` 的内存布局为:
+
+![Vec内存布局](/images/rust_base_data_type/Vec内存布局.png)
+
+一个`Vec<T>` 包含3个值：
+
+- 对分配在堆上用于保存元素缓冲区的引用
+- 缓冲区可以存储的元素的个数，即容量
+- 当前实际存储的元素的个数，即长度
+
+当缓冲区达到容量上限后，再给向量添加元素会导致：
+
+1. 重新分配一个更大的缓冲区
+2. 将现有的内容复制过去
+3. 基于新的缓冲区更新向量的指针和容量
+4. 释放旧的缓冲区
+
+注意： 如果提前知道向量中需要保存的元素的个数,可以使用`Vec::with_capacity`先创建一个有足够大缓冲区的向量.
+
+```rust
+fn main() {
+    let mut v = Vec::with_capacity(2);
+    v.push(1);
+    v.push(2);
+    v.push(3);
+    println!("{}",v.capacity()) // 4
+}
+```
+
+可以通过代码简单验证,如果没有空闲容量,则会重新申请一块内存,大小为原来vec内存大小的两倍.
+
+### `Vec<T>` 常用方法
+
+与数组类似,向量也可以使用切片的相关的方法.
+
+```rust
+fn main() {
+    let mut names = vec!["fan-tastic", "fan", "cc"];
+    let mut buffer = vec![0, 100];
+    // 通过索引获取元素
+    let first_name = names[0];
+    // 取得一个切片引用
+    let my_ref = &buffer[10..20];
+    // 取得一个切片的副本
+    let my_copy = buffer[10..20].to_vec();
+    if let Some(item) = names.first() {
+        println!("first {}", item);
+    }
+    if let Some(item) = names.last() {
+        println!("last {}", item);
+    }
+
+    if let Some(item) = names.get(2) {
+        println!("get index 2 value is {}", item);
+    }
+    println!("len is {}", names.len());
+    println!("is empty: {}", names.is_empty());
+    println!("capacity is {}", names.capacity());
+    // 扩容
+    names.reserve(20);
+    // vec 末尾追加
+    names.push("aa");
+    //  移除并返回最后一个元素.返回值的类型 是 `Option<T>`.如果最后一个元素是 x 则返回 Some(x),如果向量为
+    // 空则返回 None.
+    names.pop();
+    // 在指定索引位置添加元素
+    names.insert(2, "peanut");
+    //  移除并返回 vec[index], 将 vec[index+1..]中的值向左顺移一个位置
+    // 如果 index >= vec.len() 则panic,因为此时 vec[index] 没有要移除的元素
+    names.remove(2);
+    // 清空所有元素
+    names.clear();
+    // names.truncate(new_len)将向量长度减少为 new_len，清除范围在vec[new_len..] 之内的元素
+    names.truncate(2);
+    // vec.extend(iterable) 按顺序将 iterable 的所有项添加到 vec 末尾
+    names.extend(["a", "b", "c"]);
+    // vec.split_off(index) 与 vec.truncate(index) 类似, 返回一个包含从 vec 末尾移除值的 Vec<T>
+    names.split_off(3);
+    // vec.append(&mut vec2) 把 vec2 的所有元素转移到 vec, 之后 vec2 变空
+    names.append(&mut vec!["a", "b", "c"]);
+}
+```
+
+更多方法参考: <https://doc.rust-lang.org/std/vec/struct.Vec.html>
+
+关于向量的迭代需要注意:
+
+- 迭代 `Vec<T>` 产生 `T` 类型的项,元素逐个从向量中转移出来并被消费.
+- 迭代 `&Vec<T>` 类型的值.产生 `&T` 类型的项,即对个别元素的引用,不会转移.
+- 迭代 `&mut Vec<T>` 类型的值产生 `&mut T` 类型的项.
+
+数组、切片和向量还有 `.iter()` 和 `.iter_mut()` 方法, 这两个方法创建的迭代器产生对它们元素的引用.
+通常我们对向量进行for循环迭代时都推荐使用 `.iter()` 和 `.iter_mut()`.
+
+## 相关链接
+
+- <https://doc.rust-lang.org/std/vec/struct.Vec.html>
