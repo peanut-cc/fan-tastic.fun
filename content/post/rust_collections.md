@@ -28,7 +28,7 @@ Vec类型和数组类型的区别在于,Vec的长度动态可变.Vec的数据类
 - `let v: Vec<i32> = (0..5).collect();` 这种情况通常需要写明类型
 - `let v = Vec::with_capacity()` 创建空的vec, 容量可以根据需要自己设定
 
-### `Vec<T>` 内存布局
+### Vec 内存布局
 
 对于 `let n = vec![1,2,3]` 的内存布局为:
 
@@ -130,13 +130,13 @@ fn main() {
 
 创建`VecDeque<T>`的方法:
 
-- VecDeque::new()
-- VecDeque::with_capacity(n)
-- VecDeque::from(vec)
+- `VecDeque::new()`
+- `VecDeque::with_capacity(n)`
+- `VecDeque::from(vec)`
 
 虽然没有提供 `vec_deque![]` 宏的来快速创建创建双端队列, 但是 `VecDeque<T>` 实现了 `From<Vec<T>>`, 因此 `VecDeque::from(vec)`可以快速将向量转换为队列.
 
-### 内存布局
+### VecDeque内存布局
 
 ![VecDeque内存布局](/images/rust_base_data_type/Vec内存布局.png)
 
@@ -153,9 +153,71 @@ fn main() {
 - deque.front() 和 deque.back() 与 vec.first() 和 vec.last() 相似, 返回队列前端和后端元素的引用. 返回 `Option<T>`，队列为空时返回 `None`
 - deque.front_mut() 和 deque.back_mut() 与 vec.first_mut() 和 vec.last_mut() 相似,返回 `Option<&mut T>`
 
-更多方法参考: <https://doc.rust-lang.org/std/collections/vec_deque/struct.VecDeque.htmll>
+更多方法参考: <https://doc.rust-lang.org/std/collections/vec_deque/struct.VecDeque.html>
+
+## `LinkedList<T>`
+
+`LinkedList<T>` 链表,也是一种存储序列值的方式,不过链表的每个值都存储在独立的堆内存中
+
+创建`LinkedList<T>`的方法:
+
+- `LinkedList::new()`
+- `LinkedList::from([1, 2, 3, 4])`
+
+`LinkedList`实现了 `From<[T; N]>` 和 `FromIterator<T>` 所以我们还是可以非常方便通过 `LinkedList::from([1, 2, 3, 4])` 来创建一个
+`LinkedList`.或者如下方式:
+
+```rust
+use std::collections::LinkedList;
+
+fn main() {
+    let v = vec![1, 2, 3, 4];
+    let list = LinkedList::from_iter(v);
+    println!("{:?}", list);
+}
+```
+
+### LinkedList 内存布局
+
+![LinkedList内存布局](/images/rust_base_data_type/Vec内存布局.png)
+
+## `BinaryHeap<T>`
+
+`BinaryHeap` 是一个元素松散组织的集合，而且最大值始终会冒泡到队
+列前端
+
+常用的方法:
+
+- heap.push(value) 向堆中添加值
+- heap.pop() 从堆中移除并返回最大值,返回类型为 `Option<T>`,如果堆为空则返回 None
+- heap.peek() 返回堆中最大值的引用,返回类型为 `Option<&T>`
+
+```rust
+use std::collections::BinaryHeap;
+
+fn main() {
+    let mut heap = BinaryHeap::from(vec![1, 10, 14, 9, 23, 21, 17]);
+    assert_eq!(heap.peek(), Some(&23));
+    assert_eq!(heap.pop(), Some(23));
+}
+
+```
+
+`BinaryHeap` 并不限于存储数值。实现了 `Ord` trait 的任何类型,都可以保存在 BinaryHeap 中, 可以用在有优先级的工作任务队列中, '.pop()' 方法始终返回接下来有优先级最高的任务.
+
+注意 `BinaryHeap` 是可迭代类型，也有自己的 `.iter()` 方法,但迭代器会以任意顺序产生堆的元素,而不是从大到小.
+
+如果需要按照优先级顺序消费,可以通过while循环:
+
+```rust
+while let Some(item) = heap.pop() {
+    println!("{}", item);
+}
+```
 
 ## 相关链接
 
 - <https://doc.rust-lang.org/std/vec/struct.Vec.html>
-- <https://doc.rust-lang.org/std/collections/vec_deque/struct.VecDeque.htmll>
+- <https://doc.rust-lang.org/std/collections/vec_deque/struct.VecDeque.html>
+- <https://doc.rust-lang.org/std/collections/struct.LinkedList.html>
+- <https://doc.rust-lang.org/std/collections/struct.BinaryHeap.html>
