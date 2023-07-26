@@ -1,0 +1,140 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Rust笔记----结构体 - fan-tastic.fun</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="fan-tastic.fun"><meta name=description content="Rust中有3种结构体类型: named-field结构体,tuple-like结构体,unit-like结构体. 结构体中规范: 结构体的名称需"><meta name=keywords content="rust,struct,结构体"><meta name=generator content="Hugo 0.104.0 with theme even"><link rel=canonical href=https://www.fan-tastic.fun/post/rust_struct/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Rust笔记----结构体"><meta property="og:description" content="Rust中有3种结构体类型: named-field结构体,tuple-like结构体,unit-like结构体. 结构体中规范: 结构体的名称需"><meta property="og:type" content="article"><meta property="og:url" content="https://www.fan-tastic.fun/post/rust_struct/"><meta property="article:section" content="post"><meta property="article:published_time" content="2023-07-26T17:44:10+08:00"><meta property="article:modified_time" content="2023-07-26T21:58:25+08:00"><meta itemprop=name content="Rust笔记----结构体"><meta itemprop=description content="Rust中有3种结构体类型: named-field结构体,tuple-like结构体,unit-like结构体. 结构体中规范: 结构体的名称需"><meta itemprop=datePublished content="2023-07-26T17:44:10+08:00"><meta itemprop=dateModified content="2023-07-26T21:58:25+08:00"><meta itemprop=wordCount content="1035"><meta itemprop=keywords content="Rust,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Rust笔记----结构体"><meta name=twitter:description content="Rust中有3种结构体类型: named-field结构体,tuple-like结构体,unit-like结构体. 结构体中规范: 结构体的名称需"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
+<script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>fan-tastic</a></div><div class=mobile-navbar-icon><span></span>
+<span></span>
+<span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/><li class=mobile-menu-item>Home</li></a><a href=/post/><li class=mobile-menu-item>Archives</li></a><a href=/tags/><li class=mobile-menu-item>Tags</li></a><a href=/categories/><li class=mobile-menu-item>Categories</li></a><a href=/about/><li class=mobile-menu-item>About</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/ class=logo>fan-tastic</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/>Home</a></li><li class=menu-item><a class=menu-item-link href=/post/>Archives</a></li><li class=menu-item><a class=menu-item-link href=/tags/>Tags</a></li><li class=menu-item><a class=menu-item-link href=/categories/>Categories</a></li><li class=menu-item><a class=menu-item-link href=/about/>About</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Rust笔记----结构体</h1><div class=post-meta><span class=post-time>2023-07-26</span><div class=post-category><a href=/categories/rust/>Rust</a></div><span class=more-meta>1035 words</span>
+<span class=more-meta>3 mins read</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>Contents</h2><div class=post-toc-content><nav id=TableOfContents><ul><li><ul><li><a href=#三种结构体>三种结构体</a><ul><li><a href=#named-field结构体>named-field结构体</a></li><li><a href=#tuple-like-结构体>tuple-like 结构体</a></li><li><a href=#unit-like-结构体>unit-like 结构体</a></li></ul></li><li><a href=#impl-定义方法>impl 定义方法</a></li></ul></li></ul></nav></div></div><div class=post-content><p>Rust中有3种结构体类型: named-field结构体,tuple-like结构体,unit-like结构体.</p><p>结构体中规范:</p><ul><li>结构体的名称需要使用驼峰拼写法(CameCase)</li><li>结构体的字段或者属性值需要使用蛇形拼写法(snake_case)</li></ul><p>Rust结构体默认是私有的,只在声明它的模块中可见, 如果需要对模块外可见,需要加上<code>pub</code>关键字,结构体中的字段同样默认也是私有的.如果需要模块外可见同样使用<code>pub</code>关键字</p><h2 id=三种结构体>三种结构体</h2><h3 id=named-field结构体>named-field结构体</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>struct</span> <span class=nc>Person</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>name</span>: <span class=nb>String</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>age</span>: <span class=kt>u32</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>email</span>: <span class=nb>String</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>user</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Person</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>name</span>: <span class=s>&#34;fan-tasitc&#34;</span><span class=p>.</span><span class=n>to_string</span><span class=p>(),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>age</span>: <span class=mi>18</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>email</span>: <span class=s>&#34;fan-tasitc@xx.com&#34;</span><span class=p>.</span><span class=n>to_string</span><span class=p>(),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=s>&#34;name: {} age: {}, email: {}&#34;</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>user</span><span class=p>.</span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>user</span><span class=p>.</span><span class=n>age</span><span class=p>,</span><span class=w> </span><span class=n>user</span><span class=p>.</span><span class=n>email</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s>&#34;fan&#34;</span><span class=p>.</span><span class=n>to_string</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>age</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>11</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 当变量名和结构体字段名相同时可以使用下面简写的方式
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>u</span>: <span class=nc>Person</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Person</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>name</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>age</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>email</span>: <span class=s>&#34;fan@xx.com&#34;</span><span class=p>.</span><span class=n>to_string</span><span class=p>(),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;name: {} age: {}, email: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>u</span><span class=p>.</span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>u</span><span class=p>.</span><span class=n>age</span><span class=p>,</span><span class=w> </span><span class=n>u</span><span class=p>.</span><span class=n>email</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// ..u 表示让 p 借用或者拷贝 u 的某些字段,如下面这种方式
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>p</span>: <span class=nc>Person</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Person</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>name</span>: <span class=s>&#34;cc&#34;</span><span class=p>.</span><span class=n>to_string</span><span class=p>(),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>email</span>: <span class=s>&#34;cc@xx.com&#34;</span><span class=p>.</span><span class=n>to_string</span><span class=p>(),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=o>..</span><span class=n>u</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;name: {} age: {}, email: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>p</span><span class=p>.</span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>p</span><span class=p>.</span><span class=n>age</span><span class=p>,</span><span class=w> </span><span class=n>p</span><span class=p>.</span><span class=n>email</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>上面通过<code>..base</code>时,如果借用 base的字段是可Copy的,那么在借用时会自动Copy,否则,在借用时会将base中字段的所有权转移走,使得base中的该字段无效.</p><h3 id=tuple-like-结构体>tuple-like 结构体</h3><p>tuple-lik组结构体如同名字一样,和元组非常类似.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>struct</span> <span class=nc>Color</span><span class=p>(</span><span class=kt>i32</span><span class=p>,</span><span class=w> </span><span class=kt>i32</span><span class=p>,</span><span class=w> </span><span class=kt>i32</span><span class=p>);</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>struct</span> <span class=nc>Point</span><span class=p>(</span><span class=kt>i32</span><span class=p>,</span><span class=w> </span><span class=kt>i32</span><span class=p>,</span><span class=w> </span><span class=kt>i32</span><span class=p>);</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>let</span><span class=w> </span><span class=n>black</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Color</span><span class=p>(</span><span class=mi>0</span><span class=p>,</span><span class=w> </span><span class=mi>0</span><span class=p>,</span><span class=w> </span><span class=mi>0</span><span class=p>);</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>let</span><span class=w> </span><span class=n>origin</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Point</span><span class=p>(</span><span class=mi>0</span><span class=p>,</span><span class=w> </span><span class=mi>0</span><span class=p>,</span><span class=w> </span><span class=mi>0</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>tuple-lik结构体中个别的元素可以是公有的，也可以不是: <code>pub struct Color(pub i32,pub i32, i32);</code></p><h3 id=unit-like-结构体>unit-like 结构体</h3><p>unit-like struct 是没有任何字段的空struct.
+这种类型的值不占内存，非常像基元类型 <code>()</code></p><h2 id=impl-定义方法>impl 定义方法</h2><p><code>impl</code> 块只是 <code>fn</code> 定义的集合, 这些函数都是如下例子中Student 这个结构体类型的方法.
+这里的方法也叫做关联函数 (associated funtion),即是与特定类型关联.
+下面代码中new 函数,不将<code>self</code> 作为参数的方法,这样的方法与结构体类型本身而非该类型的值关联的函数,在rust中叫做静态方法.通常用于定义构造结构体函数.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>pub</span><span class=w> </span><span class=k>struct</span> <span class=nc>Student</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>name</span>: <span class=nb>String</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>age</span>: <span class=kt>u32</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>impl</span><span class=w> </span><span class=n>Student</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=k>fn</span> <span class=nf>new</span><span class=p>(</span><span class=n>name</span>: <span class=nb>String</span><span class=p>,</span><span class=w> </span><span class=n>age</span>: <span class=kt>u32</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>Student</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>Student</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>age</span><span class=w> </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=k>fn</span> <span class=nf>say</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;say hello&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=k>fn</span> <span class=nf>hello</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;my name is {} my age is {}&#34;</span><span class=p>,</span><span class=w> </span><span class=bp>self</span><span class=p>.</span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=bp>self</span><span class=p>.</span><span class=n>age</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>Struct的实例方法的第一个参数都是<code>self</code>(的不同形式):</p><ul><li><code>fn f(self)</code>：当<code>obj.f()</code>时，转移 obj的所有权，调用f方法之后，obj 将无效</li><li><code>fn f(&self)</code>：当<code>obj.f()</code>时，借用而非转移obj的只读权，方法内部不可修改obj的属性，调用f方法之后，obj依然可用</li><li><code>fn f(&mut self)</code>：当<code>obj.f()</code>时，借用obj的可写权，方法内部可修改obj的属性，调用f方法之后，obj依然可用</li></ul></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+<span class=item-content>fan-tastic.fun</span></p><p class=copyright-item><span class=item-title>LastMod</span>
+<span class=item-content>2023-07-26
+<a href=#ZgotmplZ/commit/8e63c560b41092c4496f873eba5832980d8440fe title="feat: 🎸 增加rust笔记 trait">(8e63c56)</a></span></p><p class=copyright-item><span class=item-title>License</span>
+<span class=item-content><a rel="license noopener" href=https://creativecommons.org/licenses/by/4.0/ target=_blank>知识共享署名4.0</a></span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/rust/>Rust</a></div><nav class=post-nav><a class=next href=/post/rust_collections/><span class="next-text nav-default">Rust笔记----集合</span>
+<span class="next-text nav-mobile">Next</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div><div id=gitalk-container></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css crossorigin=anonymous><script src=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js crossorigin=anonymous></script>
+<script type=text/javascript>var gitalk=new Gitalk({id:"2023-07-26 17:44:10 \u002b0800 \u002b0800",title:"Rust笔记----结构体",clientID:"8e56c7d6ce34f788ca8f",clientSecret:"d8012ab38028c2fffa457e0449f958da07dc84e5",repo:"fan-tastic.fun",owner:"peanut-cc",admin:["peanut-cc"],body:decodeURI(location.href)});gitalk.render("gitalk-container")</script><noscript>Please enable JavaScript to view the <a href=https://github.com/gitalk/gitalk>comments powered by gitalk.</a></noscript></div></main><footer id=footer class=footer><div class=social-links><a href=https://github.com/peanut-cc class="iconfont icon-github" title=github></a>
+<a href=https://www.fan-tastic.fun/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>Powered by <a class=hexo-link href=https://gohugo.io>Hugo</a></span>
+<span class=division>|</span>
+<span class=theme-info>Theme -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2022 -
+2023<span class=heart><i class="iconfont icon-heart"></i></span><span>by fan-tastic.fun</span>
+<span><a class=theme-link href=https://beian.miit.gov.cn/>豫ICP备2022023372号-1</a></span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script>
+<script type=text/javascript src=/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js></script></body></html>
