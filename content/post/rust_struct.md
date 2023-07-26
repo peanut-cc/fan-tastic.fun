@@ -4,7 +4,7 @@ date: 2023-07-26T17:44:10+08:00
 tags: ["Rust"]
 categories: ["Rust"]
 keywords: ["rust","struct", "结构体"]
-draft: true
+draft: false
 ---
 
 Rust中有3种结构体类型: named-field结构体,tuple-like结构体,unit-like结构体.
