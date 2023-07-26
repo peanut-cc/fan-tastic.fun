@@ -3,7 +3,7 @@ title: "Rust笔记----集合"
 date: 2023-07-24T22:02:04+08:00
 tags: ["Rust"]
 categories: ["Rust"]
-keywords: ["rust","Vec", "VecDeque", "LinkedList", "HashMap"]
+keywords: ["rust","Vec", "VecDeque", "LinkedList", "HashMap", "HashSet"]
 draft: false
 ---
 
@@ -215,9 +215,87 @@ while let Some(item) = heap.pop() {
 }
 ```
 
+## `HashMap<K, V>`和`BTreeMap<K, V>`
+
+Rust 提供了两种map 类型 `HashMap<K, V>`和`BTreeMap<K, V>`
+`HashMap` 把键和值保存在一个散列表中,因此要求键的类型 K 实现标准的散列和相等性特型 `Hash` 和 `Eq`
+`BTreeMap` 按照键的顺序存储条目,总体为树形结构,因此要求键类型 K 实现 `Ord`
+
+创建map
+
+- `HashMap::new()` 和 `BTreeMap::new()`
+- `iter.collect()` 可用于从"键 – 值"对创建和填充新 HashMap 或 BTreeMap. iter 必须是一个 `Iterator<Item=(K, V)>`
+- `HashMap::with_capacity(n)`
+
+常用的方法:
+
+```rust
+use std::collections::HashMap;
+
+fn main() {
+    let mut map = HashMap::new();
+    map.insert("fan-tastic", 18);
+    map.insert("fan", 11);
+    map.insert("cc", 23);
+    println!("len is {}", map.len());
+    println!("is empty {}", map.is_empty());
+    println!("is contains key cc {}", map.contains_key("cc"));
+    if let Some(result) = map.get("fan") {
+        println!("{}", result);
+    }
+    if let Some(result) = map.get_mut("cc") {
+        *result = 2;
+    }
+    map.remove("cc");
+    println!("{:?}", map);
+    map.entry("fan-tastic").or_insert(11);
+    map.clear();
+}
+```
+
+map 的迭代
+
+- 按值迭代（for (k, v) in map）产生 (K, V) 对,这样会消费map
+- 按共享引用迭代（for (k, v) in &map）产生 (&K, &V) 对
+- 按可修改引用迭代（for (k, v) in &mut map）产生 (&K, &mut V)对
+
+## `HashSet<T>`和`BTreeSet<T>`
+
+`HashSet＜K＞`和`BTreeSet＜K＞`其实就是`HashMap＜K，V＞`和`BTreeMap＜K，V＞`把Value设置为空元组的特定类型，等价于`HashSet＜K，（）＞`和`BTreeSet＜K，（）＞`
+
+这两种集合类型的特性:
+
+- 集合中的元素应该是唯一的
+- 集合中的元素应该都是可哈希的类型
+- HashSet应该是无序的，BTreeSet应该是有序的
+
+```rust
+use std::collections::{BTreeSet, HashSet};
+
+fn main() {
+    let mut hnames = HashSet::new();
+    hnames.insert("fan-tastic");
+    hnames.insert("fan");
+    hnames.insert("cc");
+    println!("{}", hnames.len());
+    println!("{}", hnames.contains("cc"));
+    // 顺序随即
+    println!("{:?}", hnames);
+    let mut bnames = BTreeSet::new();
+    bnames.insert("fan-tastic");
+    bnames.insert("fan");
+    bnames.insert("cc");
+    // 顺序固定
+    println!("{:?}", bnames);
+}
+```
+
 ## 相关链接
 
 - <https://doc.rust-lang.org/std/vec/struct.Vec.html>
 - <https://doc.rust-lang.org/std/collections/vec_deque/struct.VecDeque.html>
 - <https://doc.rust-lang.org/std/collections/struct.LinkedList.html>
 - <https://doc.rust-lang.org/std/collections/struct.BinaryHeap.html>
+- <https://doc.rust-lang.org/std/collections/struct.HashMap.html>
+- <https://doc.rust-lang.org/std/collections/struct.BTreeMap.html>
+- <https://doc.rust-lang.org/std/collections/struct.HashSet.html>
