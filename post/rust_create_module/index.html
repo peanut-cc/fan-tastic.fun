@@ -1,0 +1,294 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Rust笔记----包和模块 - fan-tastic.fun</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="fan-tastic.fun"><meta name=description content="包管理 在Rust中最基本的单位是包(crate), Rust包管理器Cargo. 通过cargo new hello --lib创建包 hello, -lib 创建的是库文件. cargo new hello --bin"><meta name=keywords content="rust,rust包管理,rust模块"><meta name=generator content="Hugo 0.104.0 with theme even"><link rel=canonical href=https://www.fan-tastic.fun/post/rust_create_module/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Rust笔记----包和模块"><meta property="og:description" content="包管理 在Rust中最基本的单位是包(crate), Rust包管理器Cargo. 通过cargo new hello --lib创建包 hello, -lib 创建的是库文件. cargo new hello --bin"><meta property="og:type" content="article"><meta property="og:url" content="https://www.fan-tastic.fun/post/rust_create_module/"><meta property="article:section" content="post"><meta property="article:published_time" content="2023-07-28T21:23:42+08:00"><meta property="article:modified_time" content="2023-07-29T17:18:34+08:00"><meta itemprop=name content="Rust笔记----包和模块"><meta itemprop=description content="包管理 在Rust中最基本的单位是包(crate), Rust包管理器Cargo. 通过cargo new hello --lib创建包 hello, -lib 创建的是库文件. cargo new hello --bin"><meta itemprop=datePublished content="2023-07-28T21:23:42+08:00"><meta itemprop=dateModified content="2023-07-29T17:18:34+08:00"><meta itemprop=wordCount content="1674"><meta itemprop=keywords content="Rust,rust包管理,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Rust笔记----包和模块"><meta name=twitter:description content="包管理 在Rust中最基本的单位是包(crate), Rust包管理器Cargo. 通过cargo new hello --lib创建包 hello, -lib 创建的是库文件. cargo new hello --bin"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
+<script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>fan-tastic</a></div><div class=mobile-navbar-icon><span></span>
+<span></span>
+<span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/><li class=mobile-menu-item>Home</li></a><a href=/post/><li class=mobile-menu-item>Archives</li></a><a href=/tags/><li class=mobile-menu-item>Tags</li></a><a href=/categories/><li class=mobile-menu-item>Categories</li></a><a href=/about/><li class=mobile-menu-item>About</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/ class=logo>fan-tastic</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/>Home</a></li><li class=menu-item><a class=menu-item-link href=/post/>Archives</a></li><li class=menu-item><a class=menu-item-link href=/tags/>Tags</a></li><li class=menu-item><a class=menu-item-link href=/categories/>Categories</a></li><li class=menu-item><a class=menu-item-link href=/about/>About</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Rust笔记----包和模块</h1><div class=post-meta><span class=post-time>2023-07-28</span><div class=post-category><a href=/categories/rust/>Rust</a></div><span class=more-meta>1674 words</span>
+<span class=more-meta>4 mins read</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>Contents</h2><div class=post-toc-content><nav id=TableOfContents><ul><li><ul><li><a href=#包管理>包管理</a><ul><li><a href=#关于cargotoml>关于<code>Cargo.toml</code></a></li></ul></li><li><a href=#模块系统>模块系统</a><ul><li><a href=#用路径引用模块>用路径引用模块</a></li><li><a href=#使用super引用模块>使用super引用模块</a></li><li><a href=#使用self引用模块>使用self引用模块</a></li></ul></li></ul></li></ul></nav></div></div><div class=post-content><h2 id=包管理>包管理</h2><p>在Rust中最基本的单位是包(crate), Rust包管理器Cargo.
+通过<code>cargo new hello --lib</code>创建包 hello, <code>-lib</code> 创建的是库文件.
+<code>cargo new hello --bin</code> 或者 省略 <code>--bin</code> 创建可执行文件爱你</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>❯ tree ./hello                         
+</span></span><span class=line><span class=cl>./hello
+</span></span><span class=line><span class=cl>├── Cargo.toml
+</span></span><span class=line><span class=cl>└── src
+</span></span><span class=line><span class=cl>    └── lib.rs
+</span></span></code></pre></td></tr></table></div></div><p><code>Cargo.toml</code> 是包配置文件.内容为:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-toml data-lang=toml><span class=line><span class=cl><span class=p>[</span><span class=nx>package</span><span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=nx>name</span> <span class=p>=</span> <span class=s2>&#34;hello&#34;</span>
+</span></span><span class=line><span class=cl><span class=nx>version</span> <span class=p>=</span> <span class=s2>&#34;0.1.0&#34;</span>
+</span></span><span class=line><span class=cl><span class=nx>edition</span> <span class=p>=</span> <span class=s2>&#34;2021&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c># See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=p>[</span><span class=nx>dependencies</span><span class=p>]</span>
+</span></span></code></pre></td></tr></table></div></div><p>目前生成的的<code>lib.rs</code>的初始化内容为:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>pub</span><span class=w> </span><span class=k>fn</span> <span class=nf>add</span><span class=p>(</span><span class=n>left</span>: <span class=kt>usize</span><span class=p>,</span><span class=w> </span><span class=n>right</span>: <span class=kt>usize</span><span class=p>)</span><span class=w> </span>-&gt; <span class=kt>usize</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>left</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=n>right</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cp>#[cfg(test)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>mod</span> <span class=nn>tests</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>use</span><span class=w> </span><span class=k>super</span>::<span class=o>*</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=cp>#[test]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>it_works</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>result</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>add</span><span class=p>(</span><span class=mi>2</span><span class=p>,</span><span class=w> </span><span class=mi>2</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>assert_eq!</span><span class=p>(</span><span class=n>result</span><span class=p>,</span><span class=w> </span><span class=mi>4</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>rust中使用<code>mod</code> 来定义模块, <code>#[cfg(test)]</code> 属性为条件编译,告诉编译器只在运行测试<code>cargo test</code>时才编译执行.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=err>❯</span><span class=w> </span><span class=n>cargo</span><span class=w> </span><span class=n>test</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=n>Compiling</span><span class=w> </span><span class=n>hello</span><span class=w> </span><span class=n>v0</span><span class=p>.</span><span class=mf>1.0</span><span class=w> </span><span class=p>(</span><span class=o>/</span><span class=n>home</span><span class=o>/</span><span class=n>peanut_fan</span><span class=o>/</span><span class=n>dev</span><span class=o>/</span><span class=n>rust_code</span><span class=o>/</span><span class=n>hello</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Finished</span><span class=w> </span><span class=n>test</span><span class=w> </span><span class=p>[</span><span class=n>unoptimized</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=n>debuginfo</span><span class=p>]</span><span class=w> </span><span class=n>target</span><span class=p>(</span><span class=n>s</span><span class=p>)</span><span class=w> </span><span class=k>in</span><span class=w> </span><span class=mf>0.29</span><span class=n>s</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>     </span><span class=n>Running</span><span class=w> </span><span class=n>unittests</span><span class=w> </span><span class=n>src</span><span class=o>/</span><span class=n>lib</span><span class=p>.</span><span class=n>rs</span><span class=w> </span><span class=p>(</span><span class=n>target</span><span class=o>/</span><span class=n>debug</span><span class=o>/</span><span class=n>deps</span><span class=o>/</span><span class=n>hello</span><span class=o>-</span><span class=n>f36de81fe94c7d9a</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>running</span><span class=w> </span><span class=mi>1</span><span class=w> </span><span class=n>test</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>test</span><span class=w> </span><span class=n>tests</span>::<span class=n>it_works</span><span class=w> </span><span class=o>..</span><span class=p>.</span><span class=w> </span><span class=n>ok</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>test</span><span class=w> </span><span class=n>result</span>: <span class=nc>ok</span><span class=p>.</span><span class=w> </span><span class=mi>1</span><span class=w> </span><span class=n>passed</span><span class=p>;</span><span class=w> </span><span class=mi>0</span><span class=w> </span><span class=n>failed</span><span class=p>;</span><span class=w> </span><span class=mi>0</span><span class=w> </span><span class=n>ignored</span><span class=p>;</span><span class=w> </span><span class=mi>0</span><span class=w> </span><span class=n>measured</span><span class=p>;</span><span class=w> </span><span class=mi>0</span><span class=w> </span><span class=n>filtered</span><span class=w> </span><span class=n>out</span><span class=p>;</span><span class=w> </span><span class=n>finished</span><span class=w> </span><span class=k>in</span><span class=w> </span><span class=mf>0.00</span><span class=n>s</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=n>Doc</span><span class=o>-</span><span class=n>tests</span><span class=w> </span><span class=n>hello</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>running</span><span class=w> </span><span class=mi>0</span><span class=w> </span><span class=n>tests</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>test</span><span class=w> </span><span class=n>result</span>: <span class=nc>ok</span><span class=p>.</span><span class=w> </span><span class=mi>0</span><span class=w> </span><span class=n>passed</span><span class=p>;</span><span class=w> </span><span class=mi>0</span><span class=w> </span><span class=n>failed</span><span class=p>;</span><span class=w> </span><span class=mi>0</span><span class=w> </span><span class=n>ignored</span><span class=p>;</span><span class=w> </span><span class=mi>0</span><span class=w> </span><span class=n>measured</span><span class=p>;</span><span class=w> </span><span class=mi>0</span><span class=w> </span><span class=n>filtered</span><span class=w> </span><span class=n>out</span><span class=p>;</span><span class=w> </span><span class=n>finished</span><span class=w> </span><span class=k>in</span><span class=w> </span><span class=mf>0.00</span><span class=n>s</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>当运行了<code>cargo test</code>,<code>cargo build</code>或者<code>cargo run</code>之后的,项目目录会增加如下内容:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>❯ tree ./hello     
+</span></span><span class=line><span class=cl>./hello
+</span></span><span class=line><span class=cl>├── Cargo.lock
+</span></span><span class=line><span class=cl>├── Cargo.toml
+</span></span><span class=line><span class=cl>├── src
+</span></span><span class=line><span class=cl>│   └── lib.rs
+</span></span><span class=line><span class=cl>└── target
+</span></span></code></pre></td></tr></table></div></div><p><code>Cargo.lock</code> 只记录依赖包的详细信息,不需要开发者维护,而是由Cargo自动维护.
+<code>target</code>文件夹是存储编译后的目标文件爱你.默认为Debug模式, 也可以使用<code>--release</code>参数使用发布模式.</p><h3 id=关于cargotoml>关于<code>Cargo.toml</code></h3><p><code>[package]</code> 包含了包的信息,名字,版本,作者,rust edition
+<code>[dependencies]</code> 是包的依赖的相关库的,如果我们添加一个<code>regex</code>的依赖则是:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-toml data-lang=toml><span class=line><span class=cl><span class=p>[</span><span class=nx>dependencies</span><span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=nx>regex</span> <span class=p>=</span> <span class=s2>&#34;1.9.1&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><p>也可以直接使用git 仓库地址</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-toml data-lang=toml><span class=line><span class=cl><span class=p>[</span><span class=nx>dependencies</span><span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=nx>rand</span> <span class=p>=</span> <span class=p>{</span> <span class=nx>git</span><span class=p>=</span><span class=s2>&#34;https://github.com/rust-lang-nursery/rand&#34;</span> <span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>也可以使用path来指定本地包</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-toml data-lang=toml><span class=line><span class=cl><span class=p>[</span><span class=nx>dependencies</span><span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=nx>xxx</span> <span class=p>=</span> <span class=p>{</span> <span class=nx>path</span> <span class=p>=</span><span class=s2>&#34;xxx&#34;</span> <span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>rust 包使用的是语义化版本号,格式为:&ldquo;X.Y.Z&rdquo;</p><ul><li>X, 主版本,做了不兼容或者颠覆性更新</li><li>Y, 次版本号,做了向下兼容的功能性修改</li><li>Z, 修订版本号, 做了向下兼容性的问题修正</li></ul><p>依赖包中指定依赖的版本号范围有以下几种:
+<code>^</code>:允许新版本号在不修改<code>X.Y.Z</code>中最左边<code>X</code>非零数字的情况下才能更新
+<code>*</code>: 允许在<code>X.Y.Z</code> 的任何一个上面
+<code>~</code>: 允许修改<code>X.Y.Z</code>中没有明确指定的版本号
+<code>手动指定</code>: 使用 <code>＞、＞=、＜、＜=、=</code>来指定版本号</p><p>实际的例子:</p><ul><li><code>^1.2.3</code> 表示 <code>>=1.2.3</code> <code>&lt;2.0.0</code></li><li><code>^1.2</code> 表示 <code>>=1.2.0</code> <code>&lt;2.0.0</code></li><li><code>^1</code> 表示 <code>>=1.0.0</code> <code>&lt;2.0.0</code></li><li><code>^0.2.3</code> 表示 <code>>=0.2.3</code> <code>&lt;0.3.0</code></li><li><code>^0.0.3</code> 表示 <code>>=0.0.3</code> <code>&lt;0.0.4</code></li><li><code>^0</code> 表示 <code>>=0.0.0</code> <code>&lt;1.0.0</code></li><li><code>1.*</code> 表示 <code>>=1.0.0</code> <code>&lt;2.0.0</code></li><li><code>1.2.*</code> 表示 <code>>=1.2.0</code> <code>&lt;1.3.0</code></li><li><code>~1.2.3</code> 表示 <code>>=1.3.4</code> <code>&lt;1.3.0</code></li><li><code>~1.2</code> 表示 <code>>=1.2.0</code> <code>&lt;1.3.0</code></li></ul><p><code>Cargo.toml</code> 中可以使用<code>[workspace]</code> 设置工作空间,如:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-toml data-lang=toml><span class=line><span class=cl><span class=p>[</span><span class=nx>workspace</span><span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=nx>members</span> <span class=p>=</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;bin&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;app&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;config&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;domain&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;migration&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>]</span>
+</span></span></code></pre></td></tr></table></div></div><p>工作空间是指在同一个根包下包含多个子包.每个子包有自己的Cargo.toml配置, 各自独立,互不影响.包括跟包的<code>Cargo.toml</code>也不会影响其他子包的依赖.不过整个工作空间只允许有一个<code>Cargo.lock</code>文件</p><p>通过 <code>Cargo.toml</code> 可以通过<code>[dev-dependencies]</code>来设置 tests, examples, benchmarks 的依赖,即执行<code>cargo test</code> 或者 <code>cargo bench</code>时使用的依赖</p><h2 id=模块系统>模块系统</h2><p>在单个文件中,可以使用<code>mod</code>来声明一个模块.
+在Rust中单个文件同时也是一个默认的模块,文件名就是模块名.每个包都拥有一个顶级模块<code>src/lib.rs</code> 或者 <code>src/main.rs</code></p><p>如果我们在<code>lib.rs</code> 定义所有的模块信息</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>mod</span> <span class=nn>front_of_house</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>mod</span> <span class=nn>hosting</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>fn</span> <span class=nf>add_to_waitlist</span><span class=p>()</span><span class=w> </span><span class=p>{}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>fn</span> <span class=nf>seat_at_table</span><span class=p>()</span><span class=w> </span><span class=p>{}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>mod</span> <span class=nn>serving</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>fn</span> <span class=nf>take_order</span><span class=p>()</span><span class=w> </span><span class=p>{}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>fn</span> <span class=nf>serve_order</span><span class=p>()</span><span class=w> </span><span class=p>{}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>fn</span> <span class=nf>take_payment</span><span class=p>()</span><span class=w> </span><span class=p>{}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>模块可以嵌套,这里我们在 <code>front_of_house</code> 模块里嵌套了两个模块<code>hosting</code> 和 <code>serving</code>, 但是在实际项目中我们很少这样做,更多的是通过不同的文件处理:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>./src
+</span></span><span class=line><span class=cl>├── front_of_house
+</span></span><span class=line><span class=cl>│   ├── hosting
+</span></span><span class=line><span class=cl>│   │   └── mod.rs
+</span></span><span class=line><span class=cl>│   ├── mod.rs
+</span></span><span class=line><span class=cl>│   └── serving
+</span></span><span class=line><span class=cl>│       └── mod.rs
+</span></span><span class=line><span class=cl>└── lib.rs
+</span></span></code></pre></td></tr></table></div></div><p>lib.rs的内容为:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>pub</span><span class=w> </span><span class=k>mod</span> <span class=nn>front_of_house</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p><code>front_of_house/mod.rs</code> 中内容为:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>pub</span><span class=w> </span><span class=k>mod</span> <span class=nn>hosting</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>pub</span><span class=w> </span><span class=k>mod</span> <span class=nn>serving</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=用路径引用模块>用路径引用模块</h3><p>绝对路径: 从包根开始,路径名以包名或者 <code>crate</code> 作为开头
+相对路径: 从当前模块开始, 以 <code>self</code>,<code>super</code> 或当前模块的标识符作为开头.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>mod</span> <span class=nn>front_of_house</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>mod</span> <span class=nn>hosting</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>fn</span> <span class=nf>add_to_waitlist</span><span class=p>()</span><span class=w> </span><span class=p>{}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>pub</span><span class=w> </span><span class=k>fn</span> <span class=nf>eat_at_restaurant</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 绝对路径
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=k>crate</span>::<span class=n>front_of_house</span>::<span class=n>hosting</span>::<span class=n>add_to_waitlist</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 相对路径
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>front_of_house</span>::<span class=n>hosting</span>::<span class=n>add_to_waitlist</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>而在我们拆分的不同文件之后我们如果在根目录下main.rs想要使用,则需要如下:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>hello</span>::<span class=n>front_of_house</span>::<span class=n>hosting</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>hosting</span>::<span class=n>add_to_waitlist</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>这里的<code>hello</code> 是因为最开始我是使用<code>cargo new hello</code>创建的项目</p><h3 id=使用super引用模块>使用super引用模块</h3><p><code>super</code> 代表的是父模块为开始的引用方式</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>serve_order</span><span class=p>()</span><span class=w> </span><span class=p>{}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>// 厨房模块
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>mod</span> <span class=nn>back_of_house</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>fix_incorrect_order</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>cook_order</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>super</span>::<span class=n>serve_order</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>cook_order</span><span class=p>()</span><span class=w> </span><span class=p>{}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=使用self引用模块>使用self引用模块</h3><p>self 其实就是引用自身模块中的项:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>serve_order</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=bp>self</span>::<span class=n>back_of_house</span>::<span class=n>cook_order</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>mod</span> <span class=nn>back_of_house</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>fix_incorrect_order</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>cook_order</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>crate</span>::<span class=n>serve_order</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>pub</span><span class=w> </span><span class=k>fn</span> <span class=nf>cook_order</span><span class=p>()</span><span class=w> </span><span class=p>{}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+<span class=item-content>fan-tastic.fun</span></p><p class=copyright-item><span class=item-title>LastMod</span>
+<span class=item-content>2023-07-29
+<a href=#ZgotmplZ/commit/7267e2428d6912bb6bc38d087a517fce98998b40 title="feat: 🎸 增加rust笔记包和模块">(7267e24)</a></span></p><p class=copyright-item><span class=item-title>License</span>
+<span class=item-content><a rel="license noopener" href=https://creativecommons.org/licenses/by/4.0/ target=_blank>知识共享署名4.0</a></span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/rust/>Rust</a>
+<a href=/tags/rust%E5%8C%85%E7%AE%A1%E7%90%86/>rust包管理</a></div><nav class=post-nav><a class=next href=/post/rust_generic/><span class="next-text nav-default">Rust笔记----泛型</span>
+<span class="next-text nav-mobile">Next</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div><div id=gitalk-container></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css crossorigin=anonymous><script src=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js crossorigin=anonymous></script>
+<script type=text/javascript>var gitalk=new Gitalk({id:"2023-07-28 21:23:42 \u002b0800 \u002b0800",title:"Rust笔记----包和模块",clientID:"8e56c7d6ce34f788ca8f",clientSecret:"d8012ab38028c2fffa457e0449f958da07dc84e5",repo:"fan-tastic.fun",owner:"peanut-cc",admin:["peanut-cc"],body:decodeURI(location.href)});gitalk.render("gitalk-container")</script><noscript>Please enable JavaScript to view the <a href=https://github.com/gitalk/gitalk>comments powered by gitalk.</a></noscript></div></main><footer id=footer class=footer><div class=social-links><a href=https://github.com/peanut-cc class="iconfont icon-github" title=github></a>
+<a href=https://www.fan-tastic.fun/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>Powered by <a class=hexo-link href=https://gohugo.io>Hugo</a></span>
+<span class=division>|</span>
+<span class=theme-info>Theme -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2022 -
+2023<span class=heart><i class="iconfont icon-heart"></i></span><span>by fan-tastic.fun</span>
+<span><a class=theme-link href=https://beian.miit.gov.cn/>豫ICP备2022023372号-1</a></span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script>
+<script type=text/javascript src=/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js></script></body></html>
