@@ -182,7 +182,31 @@ rust的错误处理有两个优秀的第三方库: `anyhow` 和 `thiserror`, 并
 > anyhow is for applications, thiserror is for libraries
 
 anyhow 可以把用户自定义的，所有实现了`std::error::Error` trait的结构体，统一转换成它定义的`anyhow::Error`
-这样在传递错误的过程中就可以使用统一的一个结构体,不用在定义各种各样的错误.
+这样在传递错误的过程中就可以使用统一的一个结构体,不用在定义各种各样的错误.某种程度上,可以看作是一个 `Box<dyn Error>`, anyhow 同时提供了`context` 扩展功能:
+
+```rust
+use anyhow::{Context, Result};
+use std::fs;
+use std::path::PathBuf;
+
+pub struct ImportantThing {
+    path: PathBuf,
+}
+
+impl ImportantThing {
+    pub fn detach(&mut self) -> Result<()> {...}
+}
+
+pub fn do_it(mut it: ImportantThing) -> Result<Vec<u8>> {
+    it.detach().context("Failed to detach the important thing")?;
+
+    let path = &it.path;
+    let content = fs::read(path)
+        .with_context(|| format!("Failed to read instrs from {}", path.display()))?;
+
+    Ok(content)
+}
+```
 
 thiserror: 如果我们自定义一个MyError结构体,需要实现很多内容,Error trait,Display,Debug以及各种From函数,手动写可能比较麻烦,而thiserror这个库可以简化这个过程
 
@@ -208,7 +232,6 @@ pub enum DataStoreError {
 我们自定义的结构体前加上`#[derive(Error)]`,就可以自动`impl Error`
 `#[error("invalid header (expected {expected:?}, found {found:?})")]`这条语句代表如何实现`Display`,后面的字符串就代表Display会输出的字符,同时支持格式化参数.比如这条语句里的expected就是代表结构体里面的元素,如果是元组则可以通过`.0`或者`.1`的方式来表示元素
 `#[from]`表示会自动实现From方法
-
 
 ## 相关链接
 
