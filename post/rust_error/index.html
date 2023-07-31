@@ -1,0 +1,237 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Rust笔记----错误处理 - fan-tastic.fun</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="fan-tastic.fun"><meta name=description content="关于rust 的错误 rust 有两种不同的错误处理机制: panic 和 Result&amp;lt;T, E&amp;gt; 1 2 3 4 5 6 pub enum Result&amp;lt;T, E&amp;gt; { /// Contains the success value Ok(T), /// Contains the error value Err(E), } Result是Rust提供的一个枚举类"><meta name=keywords content="rust,rust错误处理,rust error"><meta name=generator content="Hugo 0.104.0 with theme even"><link rel=canonical href=https://www.fan-tastic.fun/post/rust_error/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Rust笔记----错误处理"><meta property="og:description" content="关于rust 的错误 rust 有两种不同的错误处理机制: panic 和 Result<T, E> 1 2 3 4 5 6 pub enum Result<T, E> { /// Contains the success value Ok(T), /// Contains the error value Err(E), } Result是Rust提供的一个枚举类"><meta property="og:type" content="article"><meta property="og:url" content="https://www.fan-tastic.fun/post/rust_error/"><meta property="article:section" content="post"><meta property="article:published_time" content="2023-07-30T10:23:02+08:00"><meta property="article:modified_time" content="2023-07-31T21:09:17+08:00"><meta itemprop=name content="Rust笔记----错误处理"><meta itemprop=description content="关于rust 的错误 rust 有两种不同的错误处理机制: panic 和 Result<T, E> 1 2 3 4 5 6 pub enum Result<T, E> { /// Contains the success value Ok(T), /// Contains the error value Err(E), } Result是Rust提供的一个枚举类"><meta itemprop=datePublished content="2023-07-30T10:23:02+08:00"><meta itemprop=dateModified content="2023-07-31T21:09:17+08:00"><meta itemprop=wordCount content="2139"><meta itemprop=keywords content="Rust,rust错误处理,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Rust笔记----错误处理"><meta name=twitter:description content="关于rust 的错误 rust 有两种不同的错误处理机制: panic 和 Result<T, E> 1 2 3 4 5 6 pub enum Result<T, E> { /// Contains the success value Ok(T), /// Contains the error value Err(E), } Result是Rust提供的一个枚举类"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
+<script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>fan-tastic</a></div><div class=mobile-navbar-icon><span></span>
+<span></span>
+<span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/><li class=mobile-menu-item>Home</li></a><a href=/post/><li class=mobile-menu-item>Archives</li></a><a href=/tags/><li class=mobile-menu-item>Tags</li></a><a href=/categories/><li class=mobile-menu-item>Categories</li></a><a href=/about/><li class=mobile-menu-item>About</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/ class=logo>fan-tastic</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/>Home</a></li><li class=menu-item><a class=menu-item-link href=/post/>Archives</a></li><li class=menu-item><a class=menu-item-link href=/tags/>Tags</a></li><li class=menu-item><a class=menu-item-link href=/categories/>Categories</a></li><li class=menu-item><a class=menu-item-link href=/about/>About</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Rust笔记----错误处理</h1><div class=post-meta><span class=post-time>2023-07-30</span><div class=post-category><a href=/categories/rust/>Rust</a></div><span class=more-meta>2139 words</span>
+<span class=more-meta>5 mins read</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>Contents</h2><div class=post-toc-content><nav id=TableOfContents><ul><li><ul><li><a href=#关于rust-的错误>关于rust 的错误</a></li><li><a href=#错误传播>错误传播</a><ul><li><a href=#自定义错误类型>自定义错误类型</a></li><li><a href=#使用trait-object传递错误>使用trait Object传递错误</a></li></ul></li><li><a href=#anyhow-和-thiserror>anyhow 和 thiserror</a></li><li><a href=#相关链接>相关链接</a></li></ul></li></ul></nav></div></div><div class=post-content><h2 id=关于rust-的错误>关于rust 的错误</h2><p>rust 有两种不同的错误处理机制: <code>panic</code> 和 <code>Result&lt;T, E></code></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>pub</span><span class=w> </span><span class=k>enum</span> <span class=nb>Result</span><span class=o>&lt;</span><span class=n>T</span><span class=p>,</span><span class=w> </span><span class=n>E</span><span class=o>&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=sd>/// Contains the success value
+</span></span></span><span class=line><span class=cl><span class=sd></span><span class=w>    </span><span class=nb>Ok</span><span class=p>(</span><span class=n>T</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=sd>/// Contains the error value
+</span></span></span><span class=line><span class=cl><span class=sd></span><span class=w>    </span><span class=nb>Err</span><span class=p>(</span><span class=n>E</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>Result是Rust提供的一个枚举类, 它里面应当包含程序成功运行时返回的值T,或者是程序运行失败时返回的错误类型E</p><p>panic 是线程级别的,一个线程panic 其他线程可以正常运行自己的业务逻辑.</p><p>一个 <code>Result&lt;T, E></code>的例子:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>get_weather</span><span class=p>(</span><span class=n>location</span>: <span class=nc>LatLng</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nb>Result</span><span class=o>&lt;</span><span class=n>WeatherReport</span><span class=p>,</span><span class=n>io</span>::<span class=n>Error</span><span class=o>&gt;</span><span class=w> </span><span class=p>{</span><span class=o>..</span><span class=p>.}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>get_weather函数 要么返回一个成功的结果 <code>Ok(weather)</code>,即weather就是一个新的WeatherReport值, 要么返回一个错误的结果<code>Err(err_value)</code>, error_value就是一个具体的io:Error错误的值.</p><p>Rust 要求在函数返回是Result的时候,必须写相应的处理逻辑:</p><p>通过match表达式处理:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>match</span><span class=w> </span><span class=n>get_weather</span><span class=p>(</span><span class=n>hometown</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nb>Ok</span><span class=p>(</span><span class=n>report</span><span class=p>)</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=o>....</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nb>Err</span><span class=p>(</span><span class=n>err</span><span class=p>)</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;error querying the weather: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>err</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=o>....</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>同时Result 提供了一下非常方便的方法</p><ul><li><code>result.is_ok()</code> 和 <code>result.is_err()</code> 返回 bool 值,告诉我们 result 是成功的结果还是错误的结果</li><li><code>result.ok()</code> 返回 <code>Option&lt;T></code> 类型的成功值(如果有的话),如果 result 是一个成功的结果,就返回 <code>Some(success_value)</code>,否则返回 None,而丢弃错误值</li><li><code>result.err()</code> 返回 <code>Option&lt;E></code> 类型的错误值(如果有的话)</li><li><code>result.unwrap()</code> 也会返回成功值(如果 result 是成功的结果的话). 不过如果 result 是错误的结果,这个方法则会panic</li><li><code>result.unwrap_or(fallback)</code> 如果 result 是成功的结果的话返回成功值, 否则返回 fallback，丢弃错误值</li><li><code>result.expect(message)</code> 与 <code>.unwrap()</code> 相同,只不过你需要自己提供panic时打印到控制台的消息</li></ul><h2 id=错误传播>错误传播</h2><p>rust使用<code>?</code> 操作符可以传播错误, 可以在任何产生Result的表达式后面添加<code>?</code>
+<code>?</code> 操作符的行为取决与这个函数是返回一个成功的结果还是返回一个错误的结果:</p><ul><li>如果是成功的值,那么会获取Result 其中成功的值</li><li>如果是错误的值, 将错误的结果沿调用链向上传播</li></ul><h3 id=自定义错误类型>自定义错误类型</h3><p>在自己刚开始使用<code>?</code>的时候,你可能会碰到下面这种情况:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>io</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>BufRead</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>read_numbers</span><span class=p>(</span><span class=n>file</span>: <span class=kp>&amp;</span><span class=nc>mut</span><span class=w> </span><span class=k>dyn</span><span class=w> </span><span class=n>BufRead</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nb>Result</span><span class=o>&lt;</span><span class=nb>Vec</span><span class=o>&lt;</span><span class=kt>i64</span><span class=o>&gt;</span><span class=p>,</span><span class=w> </span><span class=n>io</span>::<span class=n>Error</span><span class=o>&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>numbers</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=fm>vec!</span><span class=p>[];</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>for</span><span class=w> </span><span class=n>line_result</span><span class=w> </span><span class=k>in</span><span class=w> </span><span class=n>file</span><span class=p>.</span><span class=n>lines</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>line</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>line_result</span><span class=o>?</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>numbers</span><span class=p>.</span><span class=n>push</span><span class=p>(</span><span class=n>line</span><span class=p>.</span><span class=n>parse</span><span class=p>()</span><span class=o>?</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nb>Ok</span><span class=p>(</span><span class=n>numbers</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>编译代码会看到如下错误:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>error<span class=o>[</span>E0277<span class=o>]</span>: <span class=sb>`</span>?<span class=sb>`</span> couldn<span class=err>&#39;</span>t convert the error to <span class=sb>`</span>std::io::Error<span class=sb>`</span>
+</span></span><span class=line><span class=cl> --&gt; src/main.rs:7:34
+</span></span><span class=line><span class=cl>  <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=m>3</span> <span class=p>|</span> fn read_numbers<span class=o>(</span>file: <span class=p>&amp;</span>mut dyn BufRead<span class=o>)</span> -&gt; Result&lt;Vec&lt;i64&gt;, io::Error&gt; <span class=o>{</span>
+</span></span><span class=line><span class=cl>  <span class=p>|</span>                                            --------------------------- expected <span class=sb>`</span>std::io::Error<span class=sb>`</span> because of this
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl><span class=m>7</span> <span class=p>|</span>         numbers.push<span class=o>(</span>line.parse<span class=o>()</span>?<span class=o>)</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=p>|</span>                                  ^ the trait <span class=sb>`</span>From&lt;ParseIntError&gt;<span class=sb>`</span> is not implemented <span class=k>for</span> <span class=sb>`</span>std::io::Error<span class=sb>`</span>
+</span></span><span class=line><span class=cl>  <span class=p>|</span>
+</span></span></code></pre></td></tr></table></div></div><p><code>line_result</code> 的类型是 <code>Result&lt;String,std::io::Error></code>
+<code>line.parse()</code>的返回值是:<code>Result&lt;i64, std::num::ParseIntError></code>
+而函数read_numbers的返回类型只能容纳<code>std::io::Error</code>
+Rust 会尝试把 <code>std::num::ParseIntError</code> 转换为<code>std::io::Error</code>,但是失败了. 因为 trait <code>From&lt;ParseIntError></code> is not implemented for <code>std::io::Error</code></p><p>可以通过一个简单方法解决,rust 中所有标准库的错误类型都可以转换为 <code>Box&lt;std::error::Error></code> 类型,即表示"任何错误"</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>type</span> <span class=nc>GenError</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=nb>Box</span><span class=o>&lt;</span><span class=n>std</span>::<span class=n>error</span>::<span class=n>Error</span><span class=o>&gt;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>type</span> <span class=nc>GenResult</span><span class=o>&lt;</span><span class=n>T</span><span class=o>&gt;</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=nb>Result</span><span class=o>&lt;</span><span class=n>T</span><span class=p>,</span><span class=w> </span><span class=n>GenError</span><span class=o>&gt;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>read_numbers</span><span class=p>(</span><span class=n>file</span>: <span class=kp>&amp;</span><span class=nc>mut</span><span class=w> </span><span class=k>dyn</span><span class=w> </span><span class=n>BufRead</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>GenResult</span><span class=o>&lt;</span><span class=nb>Vec</span><span class=o>&lt;</span><span class=kt>i64</span><span class=o>&gt;&gt;</span><span class=w> </span><span class=p>{}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>在实际业务开发中通常会使用定义错误的枚举类型:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>impl</span><span class=w> </span><span class=n>Error</span><span class=w> </span><span class=k>for</span><span class=w> </span><span class=n>MyError</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=sd>/// MyError属于当前自定义的枚举，其中包含了多种错误类型
+</span></span></span><span class=line><span class=cl><span class=sd>/// MyError也包含了从下层传递而来的错误类型，统一归纳
+</span></span></span><span class=line><span class=cl><span class=sd></span><span class=cp>#[derive(Debug)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>pub</span><span class=w> </span><span class=k>enum</span> <span class=nc>MyError</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>BadSchema</span><span class=p>(</span><span class=nb>String</span><span class=p>,</span><span class=w> </span><span class=nb>String</span><span class=p>,</span><span class=w> </span><span class=nb>String</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>IO</span><span class=p>(</span><span class=n>io</span>::<span class=n>Error</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Read</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Receive</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nb>Send</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>//实现Display
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>impl</span><span class=w> </span><span class=n>fmt</span>::<span class=n>Display</span><span class=w> </span><span class=k>for</span><span class=w> </span><span class=n>MyError</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>fmt</span><span class=p>(</span><span class=o>&amp;</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>f</span>: <span class=kp>&amp;</span><span class=nc>mut</span><span class=w> </span><span class=n>fmt</span>::<span class=n>Formatter</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>fmt</span>::<span class=nb>Result</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>match</span><span class=w> </span><span class=bp>self</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>MyError</span>::<span class=n>BadSchema</span><span class=p>(</span><span class=n>s1</span><span class=p>,</span><span class=w> </span><span class=n>s2</span><span class=p>,</span><span class=w> </span><span class=n>s3</span><span class=p>)</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=fm>write!</span><span class=p>(</span><span class=n>f</span><span class=p>,</span><span class=w> </span><span class=s>&#34;BadSchema Error:{}, {}, {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>s1</span><span class=p>,</span><span class=w> </span><span class=n>s2</span><span class=p>,</span><span class=w> </span><span class=n>s3</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>MyError</span>::<span class=n>IO</span><span class=p>(</span><span class=n>e</span><span class=p>)</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=fm>write!</span><span class=p>(</span><span class=n>f</span><span class=p>,</span><span class=w> </span><span class=s>&#34;IO Error: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>MyError</span>::<span class=n>Read</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=fm>write!</span><span class=p>(</span><span class=n>f</span><span class=p>,</span><span class=w> </span><span class=s>&#34;Read Error&#34;</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>MyError</span>::<span class=n>Receive</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=fm>write!</span><span class=p>(</span><span class=n>f</span><span class=p>,</span><span class=w> </span><span class=s>&#34;Receive Error&#34;</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>MyError</span>::<span class=nb>Send</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=fm>write!</span><span class=p>(</span><span class=n>f</span><span class=p>,</span><span class=w> </span><span class=s>&#34;Send Error&#34;</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>// 当我们为一个错误类型的转换实现了From方法, 就可以使用?来进行自动转换
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>impl</span><span class=w> </span><span class=nb>From</span><span class=o>&lt;</span><span class=n>io</span>::<span class=n>Error</span><span class=o>&gt;</span><span class=w> </span><span class=k>for</span><span class=w> </span><span class=n>MyError</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>fn</span> <span class=nf>from</span><span class=p>(</span><span class=n>err</span>: <span class=nc>io</span>::<span class=n>Error</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>MyError</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>MyError</span>::<span class=n>IO</span><span class=p>(</span><span class=n>err</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>在定义MyError时,其中包括了多种错误类型,有当前模块产生的错误（比如Read, Receive, Send）. 也有从下层模块传递上来的错误,比如IO(<code>io::Error</code>),针对从下层传递而来的这种错误, 我们需要将它归纳到自己的MyError中，统一传递给上层,当我们为一个错误类型的转换实现了From方法, 就可以使用?来进行自动转换.</p><h3 id=使用trait-object传递错误>使用trait Object传递错误</h3><p>这种方式是直接使用 <code>Box&lt;dyn Error></code> 来统一错误类型. 使用 <code>?</code> 来传递错误,自动把Error 转换成 <code>Box&lt;dyn Error></code></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>test_error</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nb>Result</span><span class=o>&lt;</span><span class=kt>i32</span><span class=p>,</span><span class=w> </span><span class=nb>Box</span><span class=o>&lt;</span><span class=k>dyn</span><span class=w> </span><span class=n>Error</span><span class=o>&gt;&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>s</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>std</span>::<span class=n>fs</span>::<span class=n>read_to_string</span><span class=p>(</span><span class=s>&#34;test123.txt&#34;</span><span class=p>)</span><span class=o>?</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>n</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>s</span><span class=p>.</span><span class=n>trim</span><span class=p>().</span><span class=n>parse</span>::<span class=o>&lt;</span><span class=kt>i32</span><span class=o>&gt;</span><span class=p>()</span><span class=o>?</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nb>Ok</span><span class=p>(</span><span class=n>n</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>这种方式的好处在于不用再一个个地去定义错误类型,编写From方法,坏处在于丢失了具体的错误类型的信息,如果要对于不同的错误类型进行不同处理,就会遇到麻烦</p><h2 id=anyhow-和-thiserror>anyhow 和 thiserror</h2><p>rust的错误处理有两个优秀的第三方库: <code>anyhow</code> 和 <code>thiserror</code>, 并且经常可以看到这句话:</p><blockquote><p>anyhow is for applications, thiserror is for libraries</p></blockquote><p>anyhow 可以把用户自定义的，所有实现了<code>std::error::Error</code> trait的结构体，统一转换成它定义的<code>anyhow::Error</code>
+这样在传递错误的过程中就可以使用统一的一个结构体,不用在定义各种各样的错误.</p><p>thiserror: 如果我们自定义一个MyError结构体,需要实现很多内容,Error trait,Display,Debug以及各种From函数,手动写可能比较麻烦,而thiserror这个库可以简化这个过程</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>thiserror</span>::<span class=n>Error</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cp>#[derive(Error, Debug)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>pub</span><span class=w> </span><span class=k>enum</span> <span class=nc>DataStoreError</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=cp>#[error(</span><span class=s>&#34;data store disconnected&#34;</span><span class=cp>)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Disconnect</span><span class=p>(</span><span class=cp>#[from]</span><span class=w> </span><span class=n>io</span>::<span class=n>Error</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=cp>#[error(</span><span class=s>&#34;the data for key `{0}` is not available&#34;</span><span class=cp>)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Redaction</span><span class=p>(</span><span class=nb>String</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=cp>#[error(</span><span class=s>&#34;invalid header (expected {expected:?}, found {found:?})&#34;</span><span class=cp>)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>InvalidHeader</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>expected</span>: <span class=nb>String</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>found</span>: <span class=nb>String</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>},</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=cp>#[error(</span><span class=s>&#34;unknown data store error&#34;</span><span class=cp>)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Unknown</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>我们自定义的结构体前加上<code>#[derive(Error)]</code>,就可以自动<code>impl Error</code>
+<code>#[error("invalid header (expected {expected:?}, found {found:?})")]</code>这条语句代表如何实现<code>Display</code>,后面的字符串就代表Display会输出的字符,同时支持格式化参数.比如这条语句里的expected就是代表结构体里面的元素,如果是元组则可以通过<code>.0</code>或者<code>.1</code>的方式来表示元素
+<code>#[from]</code>表示会自动实现From方法</p><h2 id=相关链接>相关链接</h2><ul><li><a href=https://docs.rs/thiserror/latest/thiserror/>https://docs.rs/thiserror/latest/thiserror/</a></li><li><a href=https://docs.rs/anyhow/latest/anyhow/>https://docs.rs/anyhow/latest/anyhow/</a></li><li><a href=https://rustmagazine.github.io/rust_magazine_2021/chapter_2/rust_error_handle_and_log.html>https://rustmagazine.github.io/rust_magazine_2021/chapter_2/rust_error_handle_and_log.html</a></li></ul></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+<span class=item-content>fan-tastic.fun</span></p><p class=copyright-item><span class=item-title>LastMod</span>
+<span class=item-content>2023-07-31
+<a href=#ZgotmplZ/commit/918154174b422a82fff053bdffb4ea8f7c0378be title="feat: 🎸 增加rust笔记 错误处理">(9181541)</a></span></p><p class=copyright-item><span class=item-title>License</span>
+<span class=item-content><a rel="license noopener" href=https://creativecommons.org/licenses/by/4.0/ target=_blank>知识共享署名4.0</a></span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/rust/>Rust</a>
+<a href=/tags/rust%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/>rust错误处理</a></div><nav class=post-nav><a class=next href=/post/rust_crate_module/><span class="next-text nav-default">Rust笔记----包和模块</span>
+<span class="next-text nav-mobile">Next</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div><div id=gitalk-container></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css crossorigin=anonymous><script src=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js crossorigin=anonymous></script>
+<script type=text/javascript>var gitalk=new Gitalk({id:"2023-07-30 10:23:02 \u002b0800 \u002b0800",title:"Rust笔记----错误处理",clientID:"8e56c7d6ce34f788ca8f",clientSecret:"d8012ab38028c2fffa457e0449f958da07dc84e5",repo:"fan-tastic.fun",owner:"peanut-cc",admin:["peanut-cc"],body:decodeURI(location.href)});gitalk.render("gitalk-container")</script><noscript>Please enable JavaScript to view the <a href=https://github.com/gitalk/gitalk>comments powered by gitalk.</a></noscript></div></main><footer id=footer class=footer><div class=social-links><a href=https://github.com/peanut-cc class="iconfont icon-github" title=github></a>
+<a href=https://www.fan-tastic.fun/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>Powered by <a class=hexo-link href=https://gohugo.io>Hugo</a></span>
+<span class=division>|</span>
+<span class=theme-info>Theme -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2022 -
+2023<span class=heart><i class="iconfont icon-heart"></i></span><span>by fan-tastic.fun</span>
+<span><a class=theme-link href=https://beian.miit.gov.cn/>豫ICP备2022023372号-1</a></span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script>
+<script type=text/javascript src=/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js></script></body></html>
