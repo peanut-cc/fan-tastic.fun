@@ -175,6 +175,34 @@ fn test_error() -> Result<i32, Box<dyn Error>> {
 
 这种方式的好处在于不用再一个个地去定义错误类型,编写From方法,坏处在于丢失了具体的错误类型的信息,如果要对于不同的错误类型进行不同处理,就会遇到麻烦
 
+一个小项目中单元测试的里的用法:
+
+```rust
+use std::fs;
+
+use assert_cmd::Command;
+use predicates::prelude::predicate;
+
+type TestResult = Result<(), Box<dyn std::error::Error>>;
+
+
+#[test]
+fn hello1() -> TestResult {
+    run(&["Hello there"], "tests/expected/hello1.txt")
+}
+
+
+fn run(args: &[&str], expected_file: &str) -> TestResult {
+    let expected = fs::read_to_string(expected_file)?;
+    Command::cargo_bin("echor")?
+        .args(args)
+        .assert()
+        .success()
+        .stdout(expected);
+    Ok(())
+}
+```
+
 ## anyhow 和 thiserror
 
 rust的错误处理有两个优秀的第三方库: `anyhow` 和 `thiserror`, 并且经常可以看到这句话:
