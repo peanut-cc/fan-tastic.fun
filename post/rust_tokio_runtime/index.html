@@ -1,0 +1,558 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Rust笔记----tokio:runtime - fan-tastic.fun</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="fan-tastic.fun"><meta name=description content="使用tokio 需要先创建异步运行时环境(Runtime),然后在Runtime中执行异步任务. 1 2 3 4 5 6 7 8 9 10 11 12 13 14 use tokio; fn main() { // 创建r"><meta name=keywords content="tokio,runtime,异步运行时环境"><meta name=generator content="Hugo 0.104.0 with theme even"><link rel=canonical href=https://www.fan-tastic.fun/post/rust_tokio_runtime/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Rust笔记----tokio:runtime"><meta property="og:description" content="使用tokio 需要先创建异步运行时环境(Runtime),然后在Runtime中执行异步任务. 1 2 3 4 5 6 7 8 9 10 11 12 13 14 use tokio; fn main() { // 创建r"><meta property="og:type" content="article"><meta property="og:url" content="https://www.fan-tastic.fun/post/rust_tokio_runtime/"><meta property="article:section" content="post"><meta property="article:published_time" content="2023-08-11T10:54:37+08:00"><meta property="article:modified_time" content="2023-08-16T20:48:41+08:00"><meta itemprop=name content="Rust笔记----tokio:runtime"><meta itemprop=description content="使用tokio 需要先创建异步运行时环境(Runtime),然后在Runtime中执行异步任务. 1 2 3 4 5 6 7 8 9 10 11 12 13 14 use tokio; fn main() { // 创建r"><meta itemprop=datePublished content="2023-08-11T10:54:37+08:00"><meta itemprop=dateModified content="2023-08-16T20:48:41+08:00"><meta itemprop=wordCount content="4366"><meta itemprop=keywords content="tokio,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Rust笔记----tokio:runtime"><meta name=twitter:description content="使用tokio 需要先创建异步运行时环境(Runtime),然后在Runtime中执行异步任务. 1 2 3 4 5 6 7 8 9 10 11 12 13 14 use tokio; fn main() { // 创建r"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
+<script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>fan-tastic</a></div><div class=mobile-navbar-icon><span></span>
+<span></span>
+<span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/><li class=mobile-menu-item>Home</li></a><a href=/post/><li class=mobile-menu-item>Archives</li></a><a href=/tags/><li class=mobile-menu-item>Tags</li></a><a href=/categories/><li class=mobile-menu-item>Categories</li></a><a href=/about/><li class=mobile-menu-item>About</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/ class=logo>fan-tastic</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/>Home</a></li><li class=menu-item><a class=menu-item-link href=/post/>Archives</a></li><li class=menu-item><a class=menu-item-link href=/tags/>Tags</a></li><li class=menu-item><a class=menu-item-link href=/categories/>Categories</a></li><li class=menu-item><a class=menu-item-link href=/about/>About</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Rust笔记----tokio:runtime</h1><div class=post-meta><span class=post-time>2023-08-11</span><div class=post-category><a href=/categories/rust/>Rust</a></div><span class=more-meta>4366 words</span>
+<span class=more-meta>9 mins read</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>Contents</h2><div class=post-toc-content><nav id=TableOfContents><ul><li><ul><li><a href=#async-main>async main</a></li><li><a href=#多个runtime共存>多个runtime共存</a></li><li><a href=#在异步runtime中执行异步任务>在异步runtime中执行异步任务</a></li><li><a href=#spawn-向runtime中添加新的异步任务>spawn: 向runtime中添加新的异步任务</a></li><li><a href=#进入runtime-非阻塞的enter>进入runtime: 非阻塞的enter()</a></li><li><a href=#tokio的两种线程worker-thread和blocking-thread>tokio的两种线程：worker thread和blocking thread</a></li><li><a href=#关闭runtime>关闭Runtime</a></li><li><a href=#runtime-handle>runtime Handle</a></li></ul></li></ul></nav></div></div><div class=post-content><p>使用tokio 需要先创建异步运行时环境(Runtime),然后在Runtime中执行异步任务.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>tokio</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 创建runtime
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tokio</span>::<span class=n>runtime</span>::<span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 创建带有线程池的runtime
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt2</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tokio</span>::<span class=n>runtime</span>::<span class=n>Builder</span>::<span class=n>new_multi_thread</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>.</span><span class=n>worker_threads</span><span class=p>(</span><span class=mi>8</span><span class=p>)</span><span class=w> </span><span class=c1>// 8个工作线程
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=p>.</span><span class=n>enable_io</span><span class=p>()</span><span class=w>       </span><span class=c1>// 可在runtime中使用异步IO
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=p>.</span><span class=n>enable_time</span><span class=p>()</span><span class=w>     </span><span class=c1>// 可在runtime中使用异步计时器(timer)
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=p>.</span><span class=n>build</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>.</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>tokio提供两种工作模式的runtime:</p><ul><li>单一线程的runtime</li><li>多线程的runtime</li></ul><p>不过IO并发类任务较多时,由于多线程之间切换开销,多线程的runtime性能 不一定会比单一线程的runtime更快.
+默认情况下创建出来的runtime都是多线程的runtime,且没有指定工作线程数量时,默认的工作线程数量将和CPU核数相同.</p><p>创建单一线程的runtime:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=c1>// 创建单一线程的runtime
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tokio</span>::<span class=n>runtime</span>::<span class=n>Builder</span>::<span class=n>new_current_thread</span><span class=p>().</span><span class=n>build</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=async-main>async main</h2><p>对于main函数,tokio提供了简化的创建方式:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>tokio</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cp>#[tokio::main]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>async</span><span class=w> </span><span class=k>fn</span> <span class=nf>main</span><span class=p>(){}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>通过<code>#[tokio::main]</code>注解(annotation)，使得<code>async main</code>自身成为一个<code>async runtime</code>。
+<code>#[tokio::main]</code>创建的是多线程runtime，还有以下几种方式创建多线程runtime：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=cp>#[tokio::main(flavor = </span><span class=s>&#34;multi_thread&#34;</span><span class=cp>)]</span><span class=w> </span><span class=c1>// 等价于#[tokio::main]
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cp>#[tokio::main(flavor = </span><span class=s>&#34;multi_thread&#34;</span><span class=cp>, worker_threads = 10)]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cp>#[tokio::main(worker_threads = 10)]</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p><code>#[tokio::main]</code>也可以创建单一线程的main runtime：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=cp>#[tokio::main(flavor = </span><span class=s>&#34;current_thread&#34;</span><span class=cp>)]</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=多个runtime共存>多个runtime共存</h2><p>可手动创建线程,并在不同线程内创建互相独立的runtime.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>thread</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>time</span>::<span class=n>Duration</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 在第一个线程内创建一个多线程的runtime
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>t1</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>thread</span>::<span class=n>spawn</span><span class=p>(</span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>thread</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>10</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 在第二个线程内创建一个多线程的runtime
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>t2</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>thread</span>::<span class=n>spawn</span><span class=p>(</span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>thread</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>10</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>t1</span><span class=p>.</span><span class=n>join</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>t2</span><span class=p>.</span><span class=n>join</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=在异步runtime中执行异步任务>在异步runtime中执行异步任务</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>chrono</span>::<span class=n>Local</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;before sleep: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>Local</span>::<span class=n>now</span><span class=p>().</span><span class=n>format</span><span class=p>(</span><span class=s>&#34;%F %T.%3f&#34;</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>tokio</span>::<span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>tokio</span>::<span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>2</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;after sleep: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>Local</span>::<span class=n>now</span><span class=p>().</span><span class=n>format</span><span class=p>(</span><span class=s>&#34;%F %T.%3f&#34;</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p><code>std::time</code>也提供了<code>sleep()</code>,但它会阻塞整个线程,而<code>tokio::time</code>中的<code>sleep()</code>则只是让它所在的任务放弃CPU并进入调度队列等待被唤醒,它不会阻塞任何线程,它所在的线程仍然可被用来执行其它异步任务.在<code>tokio runtime</code>中，应当使用<code>tokio::time中</code>的<code>sleep()</code>.</p><p>runtime的<code>block_on()</code> 方法要求一个Future 作为参数.每个Future都是一个已经定义好的但尚未执行的异步任务,每一个异步任务中可能会包含其它子任务.这些异步任务不会直接执行,需要先将它们放入到runtime环境,然后在合适的地方通过Future的await来执行它们.await可以将已经定义好的异步任务立即加入到runtime的任务队列中等待调度执行,await会等待该异步任务完成才返回.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=n>rt</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 只是定义了Future，此时尚未执行
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>task</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tokio</span>::<span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>tokio</span>::<span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>2</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// ...不会执行...
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// ...
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// 开始执行task任务，并等待它执行完成
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>task</span><span class=p>.</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 上面的任务完成之后，才会继续执行下面的代码
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>});</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>block_on会阻塞当前线程,直到其指定的**异步任务树(可能有子任务)**全部完成
+block_on也有返回值，其返回值为其所执行异步任务的返回值</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=n>time</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>res</span>: <span class=kt>i32</span> <span class=o>=</span><span class=w> </span><span class=n>rt</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>2</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=mi>3</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>res</span><span class=p>);</span><span class=w>  </span><span class=c1>// 3
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=spawn-向runtime中添加新的异步任务>spawn: 向runtime中添加新的异步任务</h2><p>定义要执行的异步任务时, 并未身处runtime内部,此时可以使用<code>tokio::spawn()</code>来生成异步任务</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>thread</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>chrono</span>::<span class=n>Local</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>,</span><span class=w> </span><span class=n>time</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>now</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nb>String</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Local</span>::<span class=n>now</span><span class=p>().</span><span class=n>format</span><span class=p>(</span><span class=s>&#34;%F %T&#34;</span><span class=p>).</span><span class=n>to_string</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>// 在runtime外部定义一个异步任务，且该函数返回值不是Future类型
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>fn</span> <span class=nf>async_task</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;create an async task: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>tokio</span>::<span class=n>spawn</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>10</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;async task over: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt1</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>rt1</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c1>// 调用函数，该函数内创建了一个异步任务，将在当前runtime内执行
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>      </span><span class=n>async_task</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>除了<code>tokio::spawn()</code>, runtime自身也能spawn，可以传递runtime(注意要传递runtime的引用),然后使用runtime的<code>spawn()</code></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=n>Runtime</span><span class=p>,</span><span class=w> </span><span class=n>time</span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>async_task</span><span class=p>(</span><span class=n>rt</span>: <span class=kp>&amp;</span><span class=nc>Runtime</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>rt</span><span class=p>.</span><span class=n>spawn</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>10</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>(){</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>rt</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>async_task</span><span class=p>(</span><span class=o>&amp;</span><span class=n>rt</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=进入runtime-非阻塞的enter>进入runtime: 非阻塞的enter()</h2><p><code>block_on()</code>进入runtime时,会阻塞当前线程,<code>enter()</code>进入runtime时,不会阻塞当前线程,它会返回一个<code>EnterGuard</code>. <code>EnterGuard</code>没有其它作用,它仅仅只是声明从它开始的所有异步任务都将在runtime上下文中执行,直到删除该<code>EnterGuard</code>.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>,</span><span class=w> </span><span class=n>time</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>chrono</span>::<span class=n>Local</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>thread</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>now</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nb>String</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>Local</span>::<span class=n>now</span><span class=p>().</span><span class=n>format</span><span class=p>(</span><span class=s>&#34;%F %T&#34;</span><span class=p>).</span><span class=n>to_string</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 进入runtime，但不阻塞当前线程
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>guard1</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>rt</span><span class=p>.</span><span class=n>enter</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 生成的异步任务将放入当前的runtime上下文中执行
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>tokio</span>::<span class=n>spawn</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>5</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;task1 sleep over: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 释放runtime上下文，这并不会删除runtime
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=nb>drop</span><span class=p>(</span><span class=n>guard1</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 可以再次进入runtime
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>guard2</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>rt</span><span class=p>.</span><span class=n>enter</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>tokio</span>::<span class=n>spawn</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>4</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;task2 sleep over: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nb>drop</span><span class=p>(</span><span class=n>guard2</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 阻塞当前线程，等待异步任务的完成
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>thread</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>std</span>::<span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>10</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=tokio的两种线程worker-thread和blocking-thread>tokio的两种线程：worker thread和blocking thread</h2><p>tokio提供了两种功能的线程:</p><ul><li>用于异步任务的工作线程(worker thread)</li><li>用于同步任务的阻塞线程(blocking thread)</li></ul><p>有些必要的任务可能会长时间计算而占用线程,甚至任务可能是同步的,它会直接阻塞整个线程(比如<code>thread::time::sleep()</code>)
+这类任务如果计算时间或阻塞时间较短,勉强可以考虑留在异步队列中,但如果任务计算时间或阻塞时间可能会较长,它们将不适合放在异步队列中,因为它们会破坏异步调度,使得同线程中的其它异步任务处于长时间等待状态,也就是说,这些异步任务可能会被饿很长一段时间.</p><p>例如,直接在runtime中执行阻塞线程的操作,由于这类阻塞操作不在tokio系统内,tokio无法识别这类线程阻塞的操作,tokio只能等待该线程阻塞操作的结束,才能重新获得那个线程的管理权.换句话说,worker thread被线程阻塞的时候,它已经脱离了tokio的控制,在一定程度上破坏了tokio的调度系统.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=n>rt</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=c1>// 在runtime中，让整个线程进入睡眠，注意不是tokio::time::sleep()
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>  </span><span class=n>std</span>::<span class=n>thread</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>std</span>::<span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>10</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>});</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>worker thread只用于执行那些异步任务, 异步任务指的是不会阻塞线程的任务
+而一旦遇到本该阻塞但却不会阻塞的操作(如使用<code>tokio::time::sleep()</code>而不是<code>std::thread::sleep()</code>),会直接放弃CPU,将线程交还给调度器,使该线程能够再次被调度器分配到其它异步任务. blocking thread则用于那些长时间计算的或阻塞整个线程的任务.</p><p><code>blocking thread</code>默认是不存在的,只有在调用了<code>spawn_blocking()</code>时才会创建一个对应的<code>blocking thread</code>
+<code>blocking thread</code>不用于执行异步任务,因此runtime不会去调度管理这类线程,它们在本质上相当于一个独立的<code>thread::spawn()</code>创建的线程,它也不会像<code>block_on()</code>一样会阻塞当前线程,它和独立线程的唯一区别,是<code>blocking thread</code>是在runtime内的,可以在runtime内对它们使用一些异步操作, 例如await.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>thread</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>chrono</span>::<span class=n>Local</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>,</span><span class=w> </span><span class=n>time</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>now</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nb>String</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Local</span>::<span class=n>now</span><span class=p>().</span><span class=n>format</span><span class=p>(</span><span class=s>&#34;%F %T&#34;</span><span class=p>).</span><span class=n>to_string</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt1</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 创建一个blocking thread，可立即执行(由操作系统调度系统决定何时执行)
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// 注意，不阻塞当前线程
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>task</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>rt1</span><span class=p>.</span><span class=n>spawn_blocking</span><span class=p>(</span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;in task: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c1>// 注意，是线程的睡眠，不是tokio的睡眠，因此会阻塞整个线程
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>      </span><span class=n>thread</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>std</span>::<span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>10</span><span class=p>))</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 小睡1毫秒，让上面的blocking thread先运行起来
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>std</span>::<span class=n>thread</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>std</span>::<span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_millis</span><span class=p>(</span><span class=mi>1</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;not blocking: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 可在runtime内等待blocking_thread的完成
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>rt1</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>task</span><span class=p>.</span><span class=k>await</span><span class=p>.</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;after blocking task: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>注意: <code>blocking thread</code>生成的任务虽然绑定了runtime. 但是它不是异步任务,不受tokio调度系统控制.因此如果在<code>block_on()</code>中生成了<code>blocking thread</code>或普通的线程,<code>block_on()</code>不会等待这些线程的完成.</p><h2 id=关闭runtime>关闭Runtime</h2><p>由于异步任务完全依赖于Runtime,而Runtime又是程序的一部分,它可以轻易地被删除(drop),这时Runtime会被关闭(shutdown).</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=o>..</span><span class=p>.</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nb>drop</span><span class=p>(</span><span class=n>rt</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>注意: 这种删除runtime句柄的方式只会立即关闭未被阻塞的<code>worker thread</code>, 那些已经运行起来的<code>blocking thread</code>以及已经阻塞整个线程的<code>worker thread</code>仍然会执行. 但是删除runtime又要等待runtime中的所有异步和非异步任务(会阻塞线程的任务)都完成,因此删除操作会阻塞当前线程.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>thread</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>chrono</span>::<span class=n>Local</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>,</span><span class=w> </span><span class=n>time</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>now</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nb>String</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Local</span>::<span class=n>now</span><span class=p>().</span><span class=n>format</span><span class=p>(</span><span class=s>&#34;%F %T&#34;</span><span class=p>).</span><span class=n>to_string</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 一个运行5秒的blocking thread
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// 删除rt时，该任务将继续运行，直到自己终止
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>spawn_blocking</span><span class=p>(</span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>thread</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>std</span>::<span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>5</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;blocking thread task over: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 进入runtime，并生成一个运行3秒的异步任务，
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// 删除rt时，该任务直接被终止
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>_guard</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>rt</span><span class=p>.</span><span class=n>enter</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>spawn</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>3</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;worker thread task over 1: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 进入runtime，并生成一个运行4秒的阻塞整个线程的任务
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// 删除rt时，该任务继续运行，直到自己终止
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>spawn</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>std</span>::<span class=n>thread</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>std</span>::<span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>4</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;worker thread task over 2: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 先让所有任务运行起来
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>std</span>::<span class=n>thread</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>std</span>::<span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_millis</span><span class=p>(</span><span class=mi>3</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 删除runtime句柄，将直接移除那个3秒的异步任务，
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// 且阻塞5秒，直到所有已经阻塞的thread完成
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=nb>drop</span><span class=p>(</span><span class=n>rt</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;runtime droped: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>关闭runtime可能会被阻塞,因此如果是在某个runtime中关闭另一个runtime,将会导致当前的runtime的某个worker thread被阻塞,甚至可能会阻塞很长时间,这是异步环境不允许的.</p><p>tokio提供了另外两个关闭runtime的方式：<code>shutdown_timeout()</code>和<code>shutdown_background()</code>. 前者会等待指定的时间,如果正在超时时间内还未完成关闭,将强行终止runtime中的所有线程.后者是立即强行关闭runtime.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>thread</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>chrono</span>::<span class=n>Local</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>,</span><span class=w> </span><span class=n>time</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>now</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nb>String</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Local</span>::<span class=n>now</span><span class=p>().</span><span class=n>format</span><span class=p>(</span><span class=s>&#34;%F %T&#34;</span><span class=p>).</span><span class=n>to_string</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>spawn_blocking</span><span class=p>(</span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>thread</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>std</span>::<span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>5</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;blocking thread task over: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>_guard</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>rt</span><span class=p>.</span><span class=n>enter</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>spawn</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>3</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;worker thread task over 1: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>spawn</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>std</span>::<span class=n>thread</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>std</span>::<span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>4</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;worker thread task over 2: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 先让所有任务运行起来
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>std</span>::<span class=n>thread</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>std</span>::<span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_millis</span><span class=p>(</span><span class=mi>3</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 1秒后强行关闭Runtime
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>shutdown_timeout</span><span class=p>(</span><span class=n>std</span>::<span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>1</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;runtime droped: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>需要注意的是强行关闭Runtime,可能会使得尚未完成的任务的资源泄露.因此应小心使用强行关闭Runtime的操作.</p><h2 id=runtime-handle>runtime Handle</h2><p>tokio提供了一个称为<code>runtime Handle</code>的东西, 它实际上是runtime的一个引用,可以随意被clone.它可以<code>spawn()</code>生成异步任务,这些异步任务将绑定在其所引用的runtime中,还可以<code>block_on()</code>或<code>enter()</code>进入其所引用的<code>runtime</code>,此外还可以生成<code>blocking thread</code>.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>let</span><span class=w> </span><span class=n>handle</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>rt</span><span class=p>.</span><span class=n>handle</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>handle</span><span class=p>.</span><span class=n>spawn</span><span class=p>(</span><span class=o>..</span><span class=p>.)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>handle</span><span class=p>.</span><span class=n>spawn_blocking</span><span class=p>(</span><span class=o>..</span><span class=p>.)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>handle</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=o>..</span><span class=p>.)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>handle</span><span class=p>.</span><span class=n>enter</span><span class=p>()</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+<span class=item-content>fan-tastic.fun</span></p><p class=copyright-item><span class=item-title>LastMod</span>
+<span class=item-content>2023-08-16
+<a href=#ZgotmplZ/commit/356107dcb8f3d0761559de943d9e17bc81e758df title="feat: 🎸 add tokio runtime note">(356107d)</a></span></p><p class=copyright-item><span class=item-title>License</span>
+<span class=item-content><a rel="license noopener" href=https://creativecommons.org/licenses/by/4.0/ target=_blank>知识共享署名4.0</a></span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/tokio/>tokio</a></div><nav class=post-nav><a class=prev href=/post/rust_tokio_task/><i class="iconfont icon-left"></i>
+<span class="prev-text nav-default">Rust_tokio_task</span>
+<span class="prev-text nav-mobile">Prev</span></a>
+<a class=next href=/post/rust_error/><span class="next-text nav-default">Rust笔记----错误处理</span>
+<span class="next-text nav-mobile">Next</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div><div id=gitalk-container></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css crossorigin=anonymous><script src=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js crossorigin=anonymous></script>
+<script type=text/javascript>var gitalk=new Gitalk({id:"2023-08-11 10:54:37 \u002b0800 \u002b0800",title:"Rust笔记----tokio:runtime",clientID:"8e56c7d6ce34f788ca8f",clientSecret:"d8012ab38028c2fffa457e0449f958da07dc84e5",repo:"fan-tastic.fun",owner:"peanut-cc",admin:["peanut-cc"],body:decodeURI(location.href)});gitalk.render("gitalk-container")</script><noscript>Please enable JavaScript to view the <a href=https://github.com/gitalk/gitalk>comments powered by gitalk.</a></noscript></div></main><footer id=footer class=footer><div class=social-links><a href=https://github.com/peanut-cc class="iconfont icon-github" title=github></a>
+<a href=https://www.fan-tastic.fun/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>Powered by <a class=hexo-link href=https://gohugo.io>Hugo</a></span>
+<span class=division>|</span>
+<span class=theme-info>Theme -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2022 -
+2023<span class=heart><i class="iconfont icon-heart"></i></span><span>by fan-tastic.fun</span>
+<span><a class=theme-link href=https://beian.miit.gov.cn/>豫ICP备2022023372号-1</a></span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script>
+<script type=text/javascript src=/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js></script></body></html>

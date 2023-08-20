@@ -1,0 +1,629 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Rust_tokio_task - fan-tastic.fun</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="fan-tastic.fun"><meta name=description content="task: Asynchronous green-threads. Rust中的原生线程(std::thread)是OS线程,每一个原生线程,都对应一个操作系统的线程.green thread则是用户空间"><meta name=keywords content="tokio,rust task"><meta name=generator content="Hugo 0.104.0 with theme even"><link rel=canonical href=https://www.fan-tastic.fun/post/rust_tokio_task/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Rust_tokio_task"><meta property="og:description" content="task: Asynchronous green-threads. Rust中的原生线程(std::thread)是OS线程,每一个原生线程,都对应一个操作系统的线程.green thread则是用户空间"><meta property="og:type" content="article"><meta property="og:url" content="https://www.fan-tastic.fun/post/rust_tokio_task/"><meta property="article:section" content="post"><meta property="article:published_time" content="2023-08-20T18:01:26+08:00"><meta property="article:modified_time" content="2023-08-20T21:37:34+08:00"><meta itemprop=name content="Rust_tokio_task"><meta itemprop=description content="task: Asynchronous green-threads. Rust中的原生线程(std::thread)是OS线程,每一个原生线程,都对应一个操作系统的线程.green thread则是用户空间"><meta itemprop=datePublished content="2023-08-20T18:01:26+08:00"><meta itemprop=dateModified content="2023-08-20T21:37:34+08:00"><meta itemprop=wordCount content="4833"><meta itemprop=keywords content="tokio,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Rust_tokio_task"><meta name=twitter:description content="task: Asynchronous green-threads. Rust中的原生线程(std::thread)是OS线程,每一个原生线程,都对应一个操作系统的线程.green thread则是用户空间"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
+<script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>fan-tastic</a></div><div class=mobile-navbar-icon><span></span>
+<span></span>
+<span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/><li class=mobile-menu-item>Home</li></a><a href=/post/><li class=mobile-menu-item>Archives</li></a><a href=/tags/><li class=mobile-menu-item>Tags</li></a><a href=/categories/><li class=mobile-menu-item>Categories</li></a><a href=/about/><li class=mobile-menu-item>About</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/ class=logo>fan-tastic</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/>Home</a></li><li class=menu-item><a class=menu-item-link href=/post/>Archives</a></li><li class=menu-item><a class=menu-item-link href=/tags/>Tags</a></li><li class=menu-item><a class=menu-item-link href=/categories/>Categories</a></li><li class=menu-item><a class=menu-item-link href=/about/>About</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Rust_tokio_task</h1><div class=post-meta><span class=post-time>2023-08-20</span><div class=post-category><a href=/categories/rust/>Rust</a></div><span class=more-meta>4833 words</span>
+<span class=more-meta>10 mins read</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>Contents</h2><div class=post-toc-content><nav id=TableOfContents><ul><li><ul><li><a href=#taskspawn>task::spawn()</a></li><li><a href=#taskspawn_blocking>task::spawn_blocking()</a></li><li><a href=#taskblock_in_place>task::block_in_place()</a></li><li><a href=#taskyield_now>task::yield_now</a></li><li><a href=#taskunconstrained>task::unconstrained()</a></li><li><a href=#取消任务abort>取消任务abort()</a></li><li><a href=#tokiojoin宏和tokiotry_join宏>tokio::join!宏和tokio::try_join!宏</a></li><li><a href=#固定在线程内的本地异步任务-tokiotasklocalset>固定在线程内的本地异步任务: tokio::task::LocalSet</a></li><li><a href=#tokioselect宏>tokio::select!宏</a></li><li><a href=#joinhandleis_finished>JoinHandle::is_finished()</a></li><li><a href=#tokio-task-joinset>tokio task JoinSet</a></li></ul></li></ul></nav></div></div><div class=post-content><p>task: Asynchronous green-threads. Rust中的原生线程(std::thread)是OS线程,每一个原生线程,都对应一个操作系统的线程.green thread则是用户空间的线程,由程序自身提供的调度器负责调度.同一个OS线程内的多个绿色线程之间的上下文切换的开销非常小.</p><p>每定义一个Future(async语句块), 就是定义一个静止的尚未执行的task,当它在runtime中开始运行的时候,就是真正的task,一个真正的异步任务.</p><p><code>tokio::task</code> 模块提供了几个常用函数:</p><ul><li>spawn：向runtime中添加新异步任务</li><li>spawn_blocking：生成一个blocking thread并执行指定的任务</li><li>block_in_place：在某个worker thread中执行同步任务,但是会将同线程中的其它异步任务转移走,使得异步任务不会被同步任务饥饿</li><li>yield_now: 立即放弃CPU,将线程交还给调度器,自己则进入就绪队列等待下一轮的调度</li><li>unconstrained: 将指定的异步任务声明未不受限的异步任务,它将不受tokio的协作式调度,它将一直霸占当前线程直到任务完成,不会受到tokio调度器的管理</li><li>spawn_local: 生成一个在当前线程内运行，一定不会被偷到其它线程中运行的异步任务</li></ul><p>这里的三个spawn类的方法都返回JoinHandle类型,JoinHandle类型可以通过<code>await</code>来等待异步任务的完成,也可以通过<code>abort()</code>来中断异步任务,异步任务被中断后返回JoinError类型.</p><h2 id=taskspawn>task::spawn()</h2><p>直接在当前的runtime中生成一个异步任务</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>chrono</span>::<span class=n>Local</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>std</span>::<span class=n>thread</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>task</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>,</span><span class=w> </span><span class=n>time</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>now</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nb>String</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Local</span>::<span class=n>now</span><span class=p>().</span><span class=n>format</span><span class=p>(</span><span class=s>&#34;%F %T&#34;</span><span class=p>).</span><span class=n>to_string</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>_guard</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>rt</span><span class=p>.</span><span class=n>enter</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>task</span>::<span class=n>spawn</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>3</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;task over: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>thread</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>4</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=taskspawn_blocking>task::spawn_blocking()</h2><p>生成一个blocking thread来执行指定的任务</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=kd>let</span><span class=w> </span><span class=n>join</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>task</span>::<span class=n>spawn_blocking</span><span class=p>(</span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// do some compute-heavy work or call synchronous code
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=s>&#34;blocking completed&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>let</span><span class=w> </span><span class=n>result</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>join</span><span class=p>.</span><span class=k>await</span><span class=o>?</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=fm>assert_eq!</span><span class=p>(</span><span class=n>result</span><span class=p>,</span><span class=w> </span><span class=s>&#34;blocking completed&#34;</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=taskblock_in_place>task::block_in_place()</h2><p><code>block_in_place()</code>是在当前worker thread中执行指定的可能会长时间运行或长时间阻塞线程的任务,但是它会先将该worker thread中已经存在的异步任务转移到其它worker thread,使得这些异步任务不会被饥饿.
+<code>block_in_place()</code>只应该在多线程runtime环境中运行,如果是单线程runtime,block_in_place会阻塞唯一的那个worker thread
+在<code>block_in_place</code>内部, 可以使用<code>block_on()</code>或<code>enter()</code>重新进入runtime环境</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=n>task</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=n>runtime</span>::<span class=n>Handle</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>task</span>::<span class=n>block_in_place</span><span class=p>(</span><span class=k>move</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Handle</span>::<span class=n>current</span><span class=p>().</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=k>move</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// do something async
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>});</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=taskyield_now>task::yield_now</h2><p>让当前任务立即放弃CPU,将worker thread交还给调度器.任务自身则进入调度器的就绪队列等待下次被轮询调度
+需注意 调用<code>yield_now()</code>后还需<code>await</code>才立即放弃CPU，因为<code>yield_now</code>本身是一个异步任务</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=n>task</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>task</span>::<span class=n>spawn</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// ...
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;spawned task done!&#34;</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// Yield, allowing the newly-spawned task to execute first.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>task</span>::<span class=n>yield_now</span><span class=p>().</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;main task done!&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=taskunconstrained>task::unconstrained()</h2><p><code>task::unconstrained()</code>创建一个不受限制不受调度器管理的异步任务,它将不会参与调度器的协作式调度,可以认为是将这个异步任务暂时脱离了调度管理. 这样一来,即便该任务中遇到了本该阻塞而放弃线程的操作,也不会去放弃,而是直接阻塞该线程.</p><h2 id=取消任务abort>取消任务abort()</h2><p>正在执行的异步任务可以随时被<code>abort()</code>取消,取消之后的任务返回<code>JoinError</code>类型</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>,</span><span class=w> </span><span class=n>time</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>task</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tokio</span>::<span class=n>task</span>::<span class=n>spawn</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>10</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 让上面的异步任务跑起来
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_millis</span><span class=p>(</span><span class=mi>1</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>task</span><span class=p>.</span><span class=n>abort</span><span class=p>();</span><span class=w>  </span><span class=c1>// 取消任务
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=c1>// 取消任务之后，可以取得JoinError
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>abort_err</span>: <span class=nc>JoinError</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>task</span><span class=p>.</span><span class=k>await</span><span class=p>.</span><span class=n>unwrap_err</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>abort_err</span><span class=p>.</span><span class=n>is_cancelled</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>})</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>如果异步任务已经完成,再对该任务执行<code>abort()</code>操作将没有任何效果,也就是说,没有JoinError.
+<code>task.await.unwrap_err()</code>将报错,而<code>task.await.unwrap()</code>则正常</p><h2 id=tokiojoin宏和tokiotry_join宏>tokio::join!宏和tokio::try_join!宏</h2><p>可以使用<code>await</code>去等待某个异步任务的完成,无论这个异步任务是正常完成还是被取消.
+tokio提供了两个宏<code>tokio::join!</code>和<code>tokio::try_join!</code>,可以用于等待多个异步任务全部完成</p><ul><li><code>join!</code>必须等待所有任务完成</li><li><code>try_join!</code>要么等待所有异步任务正常完成,要么等待第一个返回<code>Result Err</code>的任务出现</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>chrono</span>::<span class=n>Local</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>,</span><span class=w> </span><span class=n>time</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>now</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nb>String</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Local</span>::<span class=n>now</span><span class=p>().</span><span class=n>format</span><span class=p>(</span><span class=s>&#34;%F %T&#34;</span><span class=p>).</span><span class=n>to_string</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>async</span><span class=w> </span><span class=k>fn</span> <span class=nf>do_one</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;doing one: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>2</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;do one done: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>async</span><span class=w> </span><span class=k>fn</span> <span class=nf>do_two</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;doing two: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>1</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;do two done: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>tokio</span>::<span class=n>join</span><span class=o>!</span><span class=p>(</span><span class=n>do_one</span><span class=p>(),</span><span class=w> </span><span class=n>do_two</span><span class=p>());</span><span class=c1>// 等待两个任务均完成，才继续向下执行代码
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>      </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;all done: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=固定在线程内的本地异步任务-tokiotasklocalset>固定在线程内的本地异步任务: tokio::task::LocalSet</h2><p>当使用多线程runtime时,tokio会协作式调度它管理的所有worker thread上的所有异步任务. 例如某个worker thread空闲后可能会从其它worker thread中偷取一些异步任务来执行, 或者tokio会主动将某些异步任务转移到不同的线程上执行. 这意味着, 异步任务可能会不受预料地被跨线程执行.</p><p>有时候并不想要跨线程执行,例如那些没有实现Send的异步任务, 它们不能跨线程,只能在一个固定的线程上执行.</p><p>要使用<code>tokio::task::LocalSet</code>, 需使用<code>LocalSet::new()</code>先创建好一个<code>LocalSet</code>实例, 它将生成一个独立的任务队列用来存放本地异步任务.之后便可以使用LocalSet的<code>spawn_local()</code>向该队列中添加异步任务. 但是添加的异步任务不会直接执行,只有对<code>LocalSet</code>调用<code>await</code>或调用<code>LocalSet::run_until()</code>或<code>LocalSet::block_on()</code>的时候,才会开始运行本地队列中的异步任务.调用后两个方法会进入<code>LocalSet</code>的上下文环境</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>chrono</span>::<span class=n>Local</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>,</span><span class=w> </span><span class=n>time</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>now</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nb>String</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Local</span>::<span class=n>now</span><span class=p>().</span><span class=n>format</span><span class=p>(</span><span class=s>&#34;%F %T&#34;</span><span class=p>).</span><span class=n>to_string</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>local_tasks</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tokio</span>::<span class=n>task</span>::<span class=n>LocalSet</span>::<span class=n>new</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 向本地任务队列中添加新的异步任务，但现在不会执行
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>local_tasks</span><span class=p>.</span><span class=n>spawn_local</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task1&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>5</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task1 done&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>local_tasks</span><span class=p>.</span><span class=n>spawn_local</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task2&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>5</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task2 done&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;before local tasks running: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 开始执行本地任务队列中的所有异步任务，并等待它们全部完成
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=n>local_tasks</span><span class=p>.</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>除了<code>LocalSet::spawn_local()</code>可以生成新的本地异步任务, <code>tokio::task::spawn_local()</code>也可以生成新的本地异步任务,但是它的使用有个限制, 必须在LocalSet上下文内部才能调用</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>chrono</span>::<span class=n>Local</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>,</span><span class=w> </span><span class=n>time</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>now</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nb>String</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Local</span>::<span class=n>now</span><span class=p>().</span><span class=n>format</span><span class=p>(</span><span class=s>&#34;%F %T&#34;</span><span class=p>).</span><span class=n>to_string</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>local_tasks</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tokio</span>::<span class=n>task</span>::<span class=n>LocalSet</span>::<span class=n>new</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>local_tasks</span><span class=p>.</span><span class=n>spawn_local</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task1&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>2</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task1 done&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>local_tasks</span><span class=p>.</span><span class=n>spawn_local</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task2&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>3</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task2 done&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;before local tasks running: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// LocalSet::block_on进入LocalSet上下文
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>local_tasks</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=o>&amp;</span><span class=n>rt</span><span class=p>,</span><span class=w> </span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>tokio</span>::<span class=n>task</span>::<span class=n>spawn_local</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task3&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>4</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task3 done&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}).</span><span class=k>await</span><span class=p>.</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;all local tasks done: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>需要注意的是, 调用<code>LocalSet::block_on()</code>和<code>LocalSet::run_until()</code>时均需指定一个异步任务(Future)作为其参数,它们都会立即开始执行该异步任务以及本地任务队列中已存在的任务, 但是这两个函数均只等待其参数对应的异步任务执行完成就返回. 这意味着,它们返回的时候,可能还有正在执行中的本地异步任务,它们会继续保留在本地任务队列中.当再次进入<code>LocalSet上</code>下文或<code>await LocalSet</code>的时候,它们会等待调度并运行.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>chrono</span>::<span class=n>Local</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>,</span><span class=w> </span><span class=n>time</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>now</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nb>String</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Local</span>::<span class=n>now</span><span class=p>().</span><span class=n>format</span><span class=p>(</span><span class=s>&#34;%F %T&#34;</span><span class=p>).</span><span class=n>to_string</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>local_tasks</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tokio</span>::<span class=n>task</span>::<span class=n>LocalSet</span>::<span class=n>new</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>local_tasks</span><span class=p>.</span><span class=n>spawn_local</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task1&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>2</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task1 done {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// task2要睡眠10秒，它将被第一次local_tasks.block_on在3秒后中断
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>local_tasks</span><span class=p>.</span><span class=n>spawn_local</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task2&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>10</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task2 done, {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;before local tasks running: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>local_tasks</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=o>&amp;</span><span class=n>rt</span><span class=p>,</span><span class=w> </span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>tokio</span>::<span class=n>task</span>::<span class=n>spawn_local</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task3&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>3</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task3 done: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}).</span><span class=k>await</span><span class=p>.</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 线程阻塞15秒，此时task2睡眠10秒的时间已经过去了，
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// 当再次进入LocalSet时，task2将可以直接被唤醒
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>thread</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>std</span>::<span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>15</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 再次进入LocalSet
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>local_tasks</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=o>&amp;</span><span class=n>rt</span><span class=p>,</span><span class=w> </span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 先执行该任务，当遇到睡眠1秒的任务时，将出现任务切换，
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=c1>// 此时，调度器将调度task2，而此时task2已经睡眠完成
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;re enter localset context: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>1</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;re enter localset context done: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;all local tasks done: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>需要注意的是, 再次运行本地异步任务时, 之前被中断的异步任务所等待的事件可能已经出现了, 因此它们可能会被直接唤醒重新进入就绪队列等待下次轮询调度. 正如上面需要睡眠10秒的task2, 它会被第一次block_on中断, 虽然task2已经不再执行, 但是15秒之后它的睡眠完成事件已经出现, 它可以在下次调度本地任务时直接被唤醒. 但注意, 唤醒的任务不是直接就可以被执行的, 而是放入就绪队列等待调度。</p><p>这意味着, 再次进入上下文时, 所指定的Future中必须至少存在一个会引起调度切换的任务, 否则该Future以同步的方式运行直到结束都不会给已经被唤醒的任务任何执行的机会.</p><p>下面是使用<code>run_until()</code>两次进入<code>LocalSet</code>上下文的示例, 和<code>block_on()</code>类似, 区别仅在于它只能在<code>Runtime::block_on()</code>内或<code>[tokio::main]</code>注解的main函数内部被调用.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>chrono</span>::<span class=n>Local</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>,</span><span class=w> </span><span class=n>time</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>now</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nb>String</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Local</span>::<span class=n>now</span><span class=p>().</span><span class=n>format</span><span class=p>(</span><span class=s>&#34;%F %T&#34;</span><span class=p>).</span><span class=n>to_string</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>local_tasks</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tokio</span>::<span class=n>task</span>::<span class=n>LocalSet</span>::<span class=n>new</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>local_tasks</span><span class=p>.</span><span class=n>spawn_local</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task1&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>5</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task1 done {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;before local tasks running: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>local_tasks</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>run_until</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task2&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>3</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task2 done: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>})</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>thread</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>std</span>::<span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>10</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>local_tasks</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=n>run_until</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task3&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>tokio</span>::<span class=n>task</span>::<span class=n>yield_now</span><span class=p>().</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;local task3 done: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>})</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>.</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;all local tasks done: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=tokioselect宏>tokio::select!宏</h2><p>在Golang中有一个select关键字,tokio中则类似地提供了一个名为<code>select!</code>的宏.</p><p><code>select!</code>宏的作用是轮询指定的多个异步任务,每个异步任务都是select!的一个分支,当某个分支已完成,则执行该分支对应的代码,同时取消其它分支. 简单来说, <code>select!</code>的作用是等待第一个完成的异步任务并执行对应任务完成后的操作.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>,</span><span class=w> </span><span class=n>time</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>Duration</span><span class=p>}};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>async</span><span class=w> </span><span class=k>fn</span> <span class=nf>sleep</span><span class=p>(</span><span class=n>n</span>: <span class=kt>u64</span><span class=p>)</span><span class=w> </span>-&gt; <span class=kt>u64</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=n>n</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>n</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>tokio</span>::<span class=n>select</span><span class=o>!</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=n>v</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>sleep</span><span class=p>(</span><span class=mi>5</span><span class=p>)</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;sleep 5 secs, branch 1 done: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>v</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=n>v</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>sleep</span><span class=p>(</span><span class=mi>3</span><span class=p>)</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;sleep 3 secs, branch 2 done: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>v</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;select! done&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>每个分支都有一个异步任务, 并对异步任务完成后的返回结果进行模式匹配,如果匹配成功,则执行对应的handler</p><p><code>select!</code>本身是阻塞的, 只有<code>select!</code>执行完,它后面的代码才会继续执行.</p><p>默认情况下, <code>select!</code>会伪随机公平地轮询每一个分支, 如果确实需要让<code>select!</code>按照任务书写顺序去轮询,可以在<code>select!</code>中使用<code>biased</code>.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=cp>#[tokio::main]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>async</span><span class=w> </span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>count</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>0</span><span class=k>u8</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>loop</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>tokio</span>::<span class=n>select</span><span class=o>!</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>// 如果取消biased，挑选的任务顺序将随机，可能会导致分支中的断言失败
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>            </span><span class=n>biased</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>_</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>async</span><span class=w> </span><span class=p>{},</span><span class=w> </span><span class=k>if</span><span class=w> </span><span class=n>count</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=mi>1</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=n>count</span><span class=w> </span><span class=o>+=</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w> </span><span class=fm>assert_eq!</span><span class=p>(</span><span class=n>count</span><span class=p>,</span><span class=w> </span><span class=mi>1</span><span class=p>);</span><span class=w> </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>_</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>async</span><span class=w> </span><span class=p>{},</span><span class=w> </span><span class=k>if</span><span class=w> </span><span class=n>count</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=mi>2</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=n>count</span><span class=w> </span><span class=o>+=</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w> </span><span class=fm>assert_eq!</span><span class=p>(</span><span class=n>count</span><span class=p>,</span><span class=w> </span><span class=mi>2</span><span class=p>);</span><span class=w> </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>_</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>async</span><span class=w> </span><span class=p>{},</span><span class=w> </span><span class=k>if</span><span class=w> </span><span class=n>count</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=mi>3</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=n>count</span><span class=w> </span><span class=o>+=</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w> </span><span class=fm>assert_eq!</span><span class=p>(</span><span class=n>count</span><span class=p>,</span><span class=w> </span><span class=mi>3</span><span class=p>);</span><span class=w> </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>_</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>async</span><span class=w> </span><span class=p>{},</span><span class=w> </span><span class=k>if</span><span class=w> </span><span class=n>count</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=mi>4</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=n>count</span><span class=w> </span><span class=o>+=</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w> </span><span class=fm>assert_eq!</span><span class=p>(</span><span class=n>count</span><span class=p>,</span><span class=w> </span><span class=mi>4</span><span class=p>);</span><span class=w> </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>else</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=k>break</span><span class=p>;</span><span class=w> </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=joinhandleis_finished>JoinHandle::is_finished()</h2><p>可使用<code>JoinHandle</code>的<code>is_finished()</code>方法来判断任务是否已终止,它是非阻塞的.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=kd>let</span><span class=w> </span><span class=n>task</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tokio</span>::<span class=n>spawn</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>tokio</span>::<span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>tokio</span>::<span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>5</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>// 立即输出 false
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;1 {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>task</span><span class=p>.</span><span class=n>is_finished</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>tokio</span>::<span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>tokio</span>::<span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>10</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>// 输出 true
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;2 {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>task</span><span class=p>.</span><span class=n>is_finished</span><span class=p>());</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p><code>is_finished()</code>常用于在多个任务中轮询直到其中一个任务终止</p><h2 id=tokio-task-joinset>tokio task JoinSet</h2><p><code>tokio::task::JoinSet</code>用于收集一系列异步任务,并判断它们是否终止.
+注意, 使用JoinSet的<code>spawn()</code>方法创建的异步任务才会被收集.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=n>task</span>::<span class=n>JoinSet</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cp>#[tokio::main]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>async</span><span class=w> </span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>set</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>JoinSet</span>::<span class=n>new</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=c1>// 创建10个异步任务并收集
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>  </span><span class=k>for</span><span class=w> </span><span class=n>i</span><span class=w> </span><span class=k>in</span><span class=w> </span><span class=mi>0</span><span class=o>..</span><span class=mi>10</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 使用JoinSet的spawn()方法创建异步任务
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>set</span><span class=p>.</span><span class=n>spawn</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=k>move</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=n>i</span><span class=w> </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=c1>// join_next()阻塞直到其中一个任务完成
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>  </span><span class=n>set</span><span class=p>.</span><span class=n>join_next</span><span class=p>().</span><span class=k>await</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>set</span><span class=p>.</span><span class=n>abort_all</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>如果要等待多个或所有任务完成, 则循环<code>join_next()</code>即可. 如果<code>JoinSet</code>为空,则该方法返回None.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>while</span><span class=w> </span><span class=kd>let</span><span class=w> </span><span class=nb>Some</span><span class=p>(</span><span class=n>_</span><span class=p>)</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>set</span><span class=p>.</span><span class=n>join_next</span><span class=p>().</span><span class=k>await</span><span class=w> </span><span class=p>{}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>使用JoinSet的<code>abort_all()</code>或直接<code>Drop JoinSet</code>, 都会对所有异步任务进行<code>abort()</code>操作.
+使用JoinSet的<code>shutdown()</code>方法, 将先<code>abort_all()</code>,然后<code>join_next()</code>所有任务,直到任务集合为空.
+使用JoinSet的<code>detach_all()</code>将使得集合中的所有任务都被detach, 即使JoinSet被丢弃,被detach的任务也依然会在后台运行</p></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+<span class=item-content>fan-tastic.fun</span></p><p class=copyright-item><span class=item-title>LastMod</span>
+<span class=item-content>2023-08-20
+<a href=#ZgotmplZ/commit/a3a93768c7cae9b0fa23d92f5a0dbd4d56e17bc4 title="feat: 🎸 增加rust tokio task 笔记">(a3a9376)</a></span></p><p class=copyright-item><span class=item-title>License</span>
+<span class=item-content><a rel="license noopener" href=https://creativecommons.org/licenses/by/4.0/ target=_blank>知识共享署名4.0</a></span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/tokio/>tokio</a></div><nav class=post-nav><a class=next href=/post/rust_tokio_runtime/><span class="next-text nav-default">Rust笔记----tokio:runtime</span>
+<span class="next-text nav-mobile">Next</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div><div id=gitalk-container></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css crossorigin=anonymous><script src=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js crossorigin=anonymous></script>
+<script type=text/javascript>var gitalk=new Gitalk({id:"2023-08-20 18:01:26 \u002b0800 \u002b0800",title:"Rust_tokio_task",clientID:"8e56c7d6ce34f788ca8f",clientSecret:"d8012ab38028c2fffa457e0449f958da07dc84e5",repo:"fan-tastic.fun",owner:"peanut-cc",admin:["peanut-cc"],body:decodeURI(location.href)});gitalk.render("gitalk-container")</script><noscript>Please enable JavaScript to view the <a href=https://github.com/gitalk/gitalk>comments powered by gitalk.</a></noscript></div></main><footer id=footer class=footer><div class=social-links><a href=https://github.com/peanut-cc class="iconfont icon-github" title=github></a>
+<a href=https://www.fan-tastic.fun/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>Powered by <a class=hexo-link href=https://gohugo.io>Hugo</a></span>
+<span class=division>|</span>
+<span class=theme-info>Theme -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2022 -
+2023<span class=heart><i class="iconfont icon-heart"></i></span><span>by fan-tastic.fun</span>
+<span><a class=theme-link href=https://beian.miit.gov.cn/>豫ICP备2022023372号-1</a></span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script>
+<script type=text/javascript src=/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js></script></body></html>
