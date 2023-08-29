@@ -1,0 +1,375 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Rust笔记----tokio中的timer - fan-tastic.fun</title><meta name=renderer content="webkit"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content="no-transform"><meta http-equiv=cache-control content="no-siteapp"><meta name=theme-color content="#f8f5ec"><meta name=msapplication-navbutton-color content="#f8f5ec"><meta name=apple-mobile-web-app-capable content="yes"><meta name=apple-mobile-web-app-status-bar-style content="#f8f5ec"><meta name=author content="fan-tastic.fun"><meta name=description content="tokio 的timer模块中的几个概念: Duration类型：是对std::time::Duration的重新导出,两者等价 Instant类型：从程"><meta name=keywords content="tokio,tokio timer"><meta name=generator content="Hugo 0.104.0 with theme even"><link rel=canonical href=https://www.fan-tastic.fun/post/rust_tokio_timer/><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/manifest.json><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link href=/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><meta property="og:title" content="Rust笔记----tokio中的timer"><meta property="og:description" content="tokio 的timer模块中的几个概念: Duration类型：是对std::time::Duration的重新导出,两者等价 Instant类型：从程"><meta property="og:type" content="article"><meta property="og:url" content="https://www.fan-tastic.fun/post/rust_tokio_timer/"><meta property="article:section" content="post"><meta property="article:published_time" content="2023-08-22T01:14:13+08:00"><meta property="article:modified_time" content="2023-08-21T19:40:19+08:00"><meta itemprop=name content="Rust笔记----tokio中的timer"><meta itemprop=description content="tokio 的timer模块中的几个概念: Duration类型：是对std::time::Duration的重新导出,两者等价 Instant类型：从程"><meta itemprop=datePublished content="2023-08-22T01:14:13+08:00"><meta itemprop=dateModified content="2023-08-21T19:40:19+08:00"><meta itemprop=wordCount content="4002"><meta itemprop=keywords content="tokio,"><meta name=twitter:card content="summary"><meta name=twitter:title content="Rust笔记----tokio中的timer"><meta name=twitter:description content="tokio 的timer模块中的几个概念: Duration类型：是对std::time::Duration的重新导出,两者等价 Instant类型：从程"><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script>
+<script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=/ class=logo>fan-tastic</a></div><div class=mobile-navbar-icon><span></span>
+<span></span>
+<span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=/><li class=mobile-menu-item>Home</li></a><a href=/post/><li class=mobile-menu-item>Archives</li></a><a href=/tags/><li class=mobile-menu-item>Tags</li></a><a href=/categories/><li class=mobile-menu-item>Categories</li></a><a href=/about/><li class=mobile-menu-item>About</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=/ class=logo>fan-tastic</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=/>Home</a></li><li class=menu-item><a class=menu-item-link href=/post/>Archives</a></li><li class=menu-item><a class=menu-item-link href=/tags/>Tags</a></li><li class=menu-item><a class=menu-item-link href=/categories/>Categories</a></li><li class=menu-item><a class=menu-item-link href=/about/>About</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Rust笔记----tokio中的timer</h1><div class=post-meta><span class=post-time>2023-08-22</span><div class=post-category><a href=/categories/rust/>Rust</a></div><span class=more-meta>4002 words</span>
+<span class=more-meta>8 mins read</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>Contents</h2><div class=post-toc-content><nav id=TableOfContents><ul><li><ul><li><a href=#时长-tokiotimeduration>时长: tokio::time::Duration</a></li><li><a href=#时间点-tokiotimeinstant>时间点: tokio::time::Instant</a></li><li><a href=#睡眠-tokiotimesleep>睡眠: tokio::time::Sleep</a></li><li><a href=#任务超时-tokiotimetimeout>任务超时: tokio::time::Timeout</a></li><li><a href=#间隔任务-tokiotimeinterval>间隔任务: tokio::time::Interval</a></li></ul></li></ul></nav></div></div><div class=post-content><p>tokio 的timer模块中的几个概念:</p><ul><li><code>Duration</code>类型：是对<code>std::time::Duration</code>的重新导出,两者等价</li><li><code>Instant</code>类型：从程序运行开始就单调递增的时间点,仅结合Duration一起使用</li><li><code>Sleep</code>类型：是一个<code>Future</code>, 通过调用<code>sleep()</code>或<code>sleep_until()</code>返回, 该<code>Future</code>本身不做任何事,它只在到达某个时间点(Instant)时完成</li><li><code>Interval</code>类型：是一个流式的间隔计时器, 通过调用<code>interval()</code>或<code>interval_at()</code>返回. <code>Interval</code>使用<code>Duration</code>来初始化, 表示每隔一段时间(即指定的Duration时长)后就产生一个值</li><li><code>Timeout</code>类型：封装异步任务, 并为异步任务设置超时时长,通过调用<code>timeout()</code>或<code>timeout_at()</code>返回. 如果异步任务在指定时长内仍未完成, 则异步任务被强制取消并返回Error</li></ul><h2 id=时长-tokiotimeduration>时长: tokio::time::Duration</h2><p><code>tokio::time::Duration</code>是对<code>std::time::Duration</code>的Re-exports,它两完全等价.</p><p>使用如下几种简便的方式构建各种单位的时长</p><ul><li>Duration::from_secs(3)：3秒时长</li><li>Duration::from_millis(300)：300毫秒时长</li><li>Duration::from_micros(300)：300微秒时长</li><li>Duration::from_nanos(300)：300纳秒时长</li><li>Duration::from_secs_f32(2.3)：2.3秒时长</li><li>Duration::from_secs_f64(2.3)：2.3秒时长</li></ul><p>对于构建好的Duration实例<code>dur = Duration::from_secs_f32(2.3)</code>,可以使用如下几种方法方便地提取、转换它的秒、毫秒、微秒、纳秒</p><ul><li>dur.as_secs()：转换为秒的表示方式, 2</li><li>dur.as_millis(): 转换为毫秒表示方式,2300</li><li>dur.as_micros(): 转换为微秒表示方式,2_300_000</li><li>dur.as_nanos(): 转换为纳秒表示方式,2_300_000_000</li><li>dur.as_secs_f32(): 小数秒表示方式,2.3</li><li>dur.as_secs_f64(): 小数秒表示方式,2.3</li><li>dur.subsec_millis(): 小数部分转换为毫秒精度的表示方式,300</li><li>dur.subsec_micros(): 小数部分转换为微秒精度的表示方式,300_000</li><li>dur.subsec_nanos(): 小数部分转换为纳秒精度的表示方式,300_000_000</li></ul><p>Duration实例可以直接进行大小比较以及加减乘除运算</p><ul><li>checked_add(): 时长的加法运算, 超出Duration范围时返回None</li><li>checked_sub(): 时长的减法运算, 超出Duration范围时返回None</li><li>checked_mul(): 时长的乘法运算, 超出Duration范围时返回None</li><li>checked_div(): 时长的除法运算, 超出Duration范围时(即分母为0)返回None</li><li>saturating_add()：饱和式的加法运算, 超出范围时返回Duration支持的最大时长</li><li>saturating_mul()：饱和式的乘法运算, 超出范围时返回Duration支持的最大时长</li><li>saturating_sub()：饱和式的减法运算, 超出范围时返回0时长</li><li>mul_f32()：时长乘以小数, 得到的结果如果超出范围或无效, 则panic</li><li>mul_f64()：时长乘以小数, 得到的结果如果超出范围或无效, 则panic</li><li>div_f32()：时长除以小数, 得到的结果如果超出范围或无效, 则panic</li><li>div_f64()：时长除以小数, 得到的结果如果超出范围或无效, 则panic</li></ul><h2 id=时间点-tokiotimeinstant>时间点: tokio::time::Instant</h2><p><code>Instant</code>用于表示时间点, 主要用于两个时间点的比较和相关运算.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>tokio</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=n>time</span>::<span class=n>Instant</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=n>time</span>::<span class=n>Duration</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cp>#[tokio::main]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>async</span><span class=w> </span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 创建代表此时此刻的时间点
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>now</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Instant</span>::<span class=n>now</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// Instant 加一个Duration，得到另一个Instant
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>next_3_sec</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>now</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>3</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// Instant之间的大小比较
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;{}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=n>next_3_sec</span><span class=p>);</span><span class=w>  </span><span class=c1>// true
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// Instant减Duration，得到另一个Instant
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>new_instant</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>next_3_sec</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>2</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// Instant减另一个Instant，得到Duration
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// 注意，Duration有它的有效范围，因此必须是大的Instant减小的Instant，反之将panic
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>duration</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>next_3_sec</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=n>new_instant</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p><code>tokio::time::Instant</code>有如下常用方法:</p><ul><li><code>from_std()</code>: 将<code>std::time::Instant</code>转换为<code>tokio::time::Instant</code></li><li><code>into_std()</code>: 将<code>tokio::time::Instant</code>转换为<code>std::time::Instant</code></li><li><code>elapsed()</code>: 指定的时间点实例,距离此时此刻的时间点,已经过去了多久(返回Duration)</li><li><code>duration_since()</code>: 两个Instant实例之间相差的时长,要求<code>B.duration_since(A)</code>中的B必须晚于A,否则panic</li><li><code>checked_duration_since()</code>: 两个时间点之间的时长差,如果计算返回的Duration无效,则返回None</li><li><code>saturating_duration_since()</code>: 两个时间点之间的时长差,如果计算返回的Duration无效, 则返回0时长的Duration实例</li><li><code>checked_add()</code>: 为时间点加上某个时长,如果加上时长后是无效的Instant,则返回None</li><li><code>checked_sub()</code>: 为时间点减去某个时长,如果减去时长后是无效的Instant,则返回None</li></ul><h2 id=睡眠-tokiotimesleep>睡眠: tokio::time::Sleep</h2><p>tokio的睡眠在进入睡眠后不做任何事, 仅仅只是立即放弃CPU,并进入任务轮询队列,等待睡眠时间终点到了之后被Reactor唤醒,然后进入就绪队列等待被调度</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>,</span><span class=w> </span><span class=n>time</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>(){</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 睡眠2秒
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>2</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 一直睡眠，睡到2秒后醒来
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=n>time</span>::<span class=n>sleep_until</span><span class=p>(</span><span class=n>time</span>::<span class=n>Instant</span>::<span class=n>now</span><span class=p>()</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>2</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p><code>sleep()</code>或<code>sleep_until()</code>都返回<code>time::Sleep</code>类型, 它有3个方法可调用:</p><ul><li><code>deadline()</code>: 返回Instant, 表示该睡眠任务的睡眠终点</li><li><code>is_elapsed()</code>: 可判断此时此刻是否已经超过了该sleep任务的睡眠终点</li><li><code>reset()</code>：可用于重置睡眠任务. 如果睡眠任务未完成,则直接修改睡眠终点,如果睡眠任务已经完成,则再次创建睡眠任务,等待新的终点</li></ul><h2 id=任务超时-tokiotimetimeout>任务超时: tokio::time::Timeout</h2><p><code>tokio::time::timeout()</code>或<code>tokio::time::timeout_at()</code>可设置一个异步任务的完成超时时间, 前者接收一个Duration和一个Future作为参数,后者接收一个Instant和一个Future作为参数. 这两个函数封装异步任务之后,返回<code>time::Timeout</code>, 它也是一个Future.</p><p>如果在指定的超时时间内该异步任务已完成,则返回该异步任务的返回值,如果未完成,则异步任务被撤销并返回Err.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>chrono</span>::<span class=n>Local</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>,</span><span class=w> </span><span class=n>time</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>now</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nb>String</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Local</span>::<span class=n>now</span><span class=p>().</span><span class=n>format</span><span class=p>(</span><span class=s>&#34;%F %T&#34;</span><span class=p>).</span><span class=n>to_string</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>res</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>time</span>::<span class=n>timeout</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>5</span><span class=p>),</span><span class=w> </span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;sleeping: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>time</span>::<span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>6</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=mi>33</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>match</span><span class=w> </span><span class=n>res</span><span class=p>.</span><span class=k>await</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nb>Err</span><span class=p>(</span><span class=n>_</span><span class=p>)</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;task timeout: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>()),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nb>Ok</span><span class=p>(</span><span class=n>data</span><span class=p>)</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;get the res &#39;{}&#39;: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>data</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>()),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>得到<code>time::Timeout</code>实例res后, 可以通过<code>res.get_ref()</code>或者<code>res.get_mut()</code>获得Timeout所封装的Future的可变和不可变引用,使用<code>res.into_inner()</code>获得所封装的Future, 这会消费掉该Future</p><p>如果要取消Timeout的计时等待,直接删除掉Timeout实例即可</p><h2 id=间隔任务-tokiotimeinterval>间隔任务: tokio::time::Interval</h2><p><code>tokio::time::interval()</code>和<code>tokio::time::interval_at()</code>用于设置间隔性的任务</p><ul><li><code>interval_at()</code>: 接收一个Instant参数和一个Duration参数, Instant参数表示间隔计时器的开始计时点,Duration参数表示间隔的时长</li><li><code>interval()</code>: 接收一个Duration参数,它在第一次被调用的时候立即开始计时</li></ul><p>这两个函数只是定义了间隔计时器的起始计时点和间隔的时长,要真正开始让它开始计时,还需要调用它的<code>tick()</code>方法生成一个Future任务, 并调用await来执行并等待该任务的完成</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>chrono</span>::<span class=n>Local</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>,</span><span class=w> </span><span class=n>time</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>Duration</span><span class=p>,</span><span class=w> </span><span class=n>Instant</span><span class=p>}};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>now</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nb>String</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Local</span>::<span class=n>now</span><span class=p>().</span><span class=n>format</span><span class=p>(</span><span class=s>&#34;%F %T&#34;</span><span class=p>).</span><span class=n>to_string</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;before: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 计时器的起始计时点：此时此刻之后的5秒后
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>start</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Instant</span>::<span class=n>now</span><span class=p>()</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>5</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>interval</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>1</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>intv</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>time</span>::<span class=n>interval_at</span><span class=p>(</span><span class=n>start</span><span class=p>,</span><span class=w> </span><span class=n>interval</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 该计时任务&#34;阻塞&#34;，直到5秒后被唤醒
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=n>intv</span><span class=p>.</span><span class=n>tick</span><span class=p>().</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;task 1: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 该计时任务&#34;阻塞&#34;，直到1秒后被唤醒
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=n>intv</span><span class=p>.</span><span class=n>tick</span><span class=p>().</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;task 2: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 该计时任务&#34;阻塞&#34;，直到1秒后被唤醒
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=n>intv</span><span class=p>.</span><span class=n>tick</span><span class=p>().</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;task 3: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>再看一个例子:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>chrono</span>::<span class=n>Local</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=bp>self</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>time</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>Duration</span><span class=p>,</span><span class=w> </span><span class=n>Instant</span><span class=p>},</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>now</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nb>String</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Local</span>::<span class=n>now</span><span class=p>().</span><span class=n>format</span><span class=p>(</span><span class=s>&#34;%F %T&#34;</span><span class=p>).</span><span class=n>to_string</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;before: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>start</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Instant</span>::<span class=n>now</span><span class=p>()</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>5</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>interval</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>1</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>intv</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>time</span>::<span class=n>interval_at</span><span class=p>(</span><span class=n>start</span><span class=p>,</span><span class=w> </span><span class=n>interval</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>10</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>intv</span><span class=p>.</span><span class=n>tick</span><span class=p>().</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;task 1: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>intv</span><span class=p>.</span><span class=n>tick</span><span class=p>().</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;task 2: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>打印结果如下:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>before: 2023-08-21 19:18:26
+</span></span><span class=line><span class=cl>task 1: 2023-08-21 19:18:36
+</span></span><span class=line><span class=cl>task 2: 2023-08-21 19:18:36
+</span></span></code></pre></td></tr></table></div></div><p>输出结果中的task 1和task 2的时间点是相同的,说明第一次tick之后,并没有等待1秒之后再执行紧跟着的tick,而是立即执行
+上面代码的运行逻辑:</p><ul><li>定义5秒后开始的计时器intv, 该计时器内部有一个字段记录者下一次开始tick的时间点,其值为 <code>19:18:31</code></li><li>睡眠10秒后,时间点到了<code>19:18:36</code>,此时第一次执行<code>intv.tick()</code>,它将生成一个异步任务,执行器执行时发现此时此刻的时间点已经超过该计时器内部记录的值,于是该异步任务立即完成并进入就绪队列等待调度,同时修改计时器内部的值为<code>19:18:32</code></li><li>下一次执行tick的时候,此时此刻仍然是<code>19:18:36</code>, 已经超过了该计时器内部的<code>19:18:32</code>,因此计时任务立即完成</li></ul><p>这是tokio Interval在遇到计时延迟时的默认计时策略，叫做<code>Burst</code>,tokio支持三种延迟后的计时策略.</p><p>Burst策略,冲刺型的计时策略,当出现延迟后,将尽量快地完成接下来的tick,直到某个tick赶上它正常的计时时间点
+Delay策略,延迟性的计时策略,当出现延迟后,仍然按部就班地每隔指定的时长计时.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>chrono</span>::<span class=n>Local</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=n>time</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>Duration</span><span class=p>,</span><span class=w> </span><span class=n>Instant</span><span class=p>,</span><span class=w> </span><span class=n>MissedTickBehavior</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>now</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nb>String</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Local</span>::<span class=n>now</span><span class=p>().</span><span class=n>format</span><span class=p>(</span><span class=s>&#34;%F %T&#34;</span><span class=p>).</span><span class=n>to_string</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;before: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>intv</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>time</span>::<span class=n>interval_at</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>Instant</span>::<span class=n>now</span><span class=p>()</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>5</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>2</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>intv</span><span class=p>.</span><span class=n>set_missed_tick_behavior</span><span class=p>(</span><span class=n>MissedTickBehavior</span>::<span class=n>Delay</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>10</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;start: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>intv</span><span class=p>.</span><span class=n>tick</span><span class=p>().</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;tick 1: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>intv</span><span class=p>.</span><span class=n>tick</span><span class=p>().</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;tick 2: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>intv</span><span class=p>.</span><span class=n>tick</span><span class=p>().</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;tick 3: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>Skip策略,忽略型的计时策略,当出现延迟后,仍然所有已经被延迟的计时任务</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>use</span><span class=w> </span><span class=n>chrono</span>::<span class=n>Local</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>runtime</span>::<span class=n>Runtime</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>use</span><span class=w> </span><span class=n>tokio</span>::<span class=n>time</span>::<span class=p>{</span><span class=bp>self</span><span class=p>,</span><span class=w> </span><span class=n>Duration</span><span class=p>,</span><span class=w> </span><span class=n>Instant</span><span class=p>,</span><span class=w> </span><span class=n>MissedTickBehavior</span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>now</span><span class=p>()</span><span class=w> </span>-&gt; <span class=nb>String</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Local</span>::<span class=n>now</span><span class=p>().</span><span class=n>format</span><span class=p>(</span><span class=s>&#34;%F %T&#34;</span><span class=p>).</span><span class=n>to_string</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>main</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>let</span><span class=w> </span><span class=n>rt</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Runtime</span>::<span class=n>new</span><span class=p>().</span><span class=n>unwrap</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>rt</span><span class=p>.</span><span class=n>block_on</span><span class=p>(</span><span class=k>async</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;before: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=k>mut</span><span class=w> </span><span class=n>intv</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>time</span>::<span class=n>interval_at</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>Instant</span>::<span class=n>now</span><span class=p>()</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>5</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>2</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>intv</span><span class=p>.</span><span class=n>set_missed_tick_behavior</span><span class=p>(</span><span class=n>MissedTickBehavior</span>::<span class=n>Skip</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>time</span>::<span class=n>sleep</span><span class=p>(</span><span class=n>Duration</span>::<span class=n>from_secs</span><span class=p>(</span><span class=mi>10</span><span class=p>)).</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;start: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>intv</span><span class=p>.</span><span class=n>tick</span><span class=p>().</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;tick 1: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>intv</span><span class=p>.</span><span class=n>tick</span><span class=p>().</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;tick 2: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>intv</span><span class=p>.</span><span class=n>tick</span><span class=p>().</span><span class=k>await</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=fm>println!</span><span class=p>(</span><span class=s>&#34;tick 3: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>now</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div></div><div class=post-copyright><p class=copyright-item><span class=item-title>Author</span>
+<span class=item-content>fan-tastic.fun</span></p><p class=copyright-item><span class=item-title>LastMod</span>
+<span class=item-content>2023-08-21
+<a href=#ZgotmplZ/commit/c867b6d83654db48222347808cee1cb32686ffba title="feat: 🎸 增加rust tokio timer笔记">(c867b6d)</a></span></p><p class=copyright-item><span class=item-title>License</span>
+<span class=item-content><a rel="license noopener" href=https://creativecommons.org/licenses/by/4.0/ target=_blank>知识共享署名4.0</a></span></p></div><footer class=post-footer><div class=post-tags><a href=/tags/tokio/>tokio</a></div><nav class=post-nav><a class=next href=/post/rust_tokio_task/><span class="next-text nav-default">Rust笔记----tokio中的task</span>
+<span class="next-text nav-mobile">Next</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div><div id=gitalk-container></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css crossorigin=anonymous><script src=https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js crossorigin=anonymous></script>
+<script type=text/javascript>var gitalk=new Gitalk({id:"2023-08-22 01:14:13 \u002b0800 \u002b0800",title:"Rust笔记----tokio中的timer",clientID:"8e56c7d6ce34f788ca8f",clientSecret:"d8012ab38028c2fffa457e0449f958da07dc84e5",repo:"fan-tastic.fun",owner:"peanut-cc",admin:["peanut-cc"],body:decodeURI(location.href)});gitalk.render("gitalk-container")</script><noscript>Please enable JavaScript to view the <a href=https://github.com/gitalk/gitalk>comments powered by gitalk.</a></noscript></div></main><footer id=footer class=footer><div class=social-links><a href=https://github.com/peanut-cc class="iconfont icon-github" title=github></a>
+<a href=https://www.fan-tastic.fun/index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>Powered by <a class=hexo-link href=https://gohugo.io>Hugo</a></span>
+<span class=division>|</span>
+<span class=theme-info>Theme -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2022 -
+2023<span class=heart><i class="iconfont icon-heart"></i></span><span>by fan-tastic.fun</span>
+<span><a class=theme-link href=https://beian.miit.gov.cn/>豫ICP备2022023372号-1</a></span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script>
+<script type=text/javascript src=/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js></script></body></html>
