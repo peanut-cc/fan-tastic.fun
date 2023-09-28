@@ -159,11 +159,22 @@ rustflags = ["-C", "link-arg=-fuse-ld=/path/to/mold"]
 用于监控当前项目的文件的变化,并执行`cargo`的相关命令,可以通过如下命令安装
 
 `cargo install cargo-watch`
+通常会使用的参数说明：
+
+- -c: 每次运行前清空屏幕
+- -q: 抑制 cargo-watch 本身的输出
+- -w: 指定监控的文件活文件目录
+- -x: 要执行的cargo 的命令
 
 在实际项目开发中可以根据自己的需要来设置要执行的命令,如:
 
 - `cargo watch -x check`: 每次文件的变动就会触发执行 `cargo check`
 - `cargo watch -x check -x test -x run`: 每次文件变动触发执行`cargo check`, `cargo test`, `cargo run`
+
+或者是运行分别运行两个watch:
+
+- `cargo watch -q -c -w src -x run`: 只监控src目录下文件的变化
+- `cargo watch -q -c -w tests/ -x "test -q quick_dev -- --nocapture"`: 之监控 tests 目录下的文件变化，并执行 quick_dev 中的测试
 
 #### Linting
 
